@@ -209,87 +209,87 @@ exports.handleUserRecordRequestsMySql = function (webClientRequest, clientReques
 
 exports.handleInventoryRecordRequestsMySql = function (webClientRequest, clientRequestWithParamsMap, http_response) {
 
-    mySqlInventoryDBClient.connect( function (err ) {
+    if (!globalsForServiceModule.mySqlDBConnected) {
 
-        console.log("Inside the connection to InventoryDetails MySql DB");
+        mySqlInventoryDBClient.connect(function (err) {
 
-        if (err != null) {
+            console.log("Inside the connection to InventoryDetails MySql DB");
 
-            console.error("MySQLServiceEngine.handleInventoryRecordRequestsMySql : Server Error while connecting to InventoryDetails mysql db on local server :");
+            if (err != null) {
 
-            var failureMessage = "MySQLServiceEngine.handleInventoryRecordRequestsMySql : Server Error while connecting to InventoryDetails mysql db on local server :";
-            HelperUtilsModule.logInternalServerError("MySQLServiceEngine.handleInventoryRecordRequestsMySql", failureMessage, http_response);
+                console.error("MySQLServiceEngine.handleInventoryRecordRequestsMySql : Server Error while connecting to InventoryDetails mysql db on local server : " + err);
 
-        }
-        else {
+                var failureMessage = "MySQLServiceEngine.handleInventoryRecordRequestsMySql : Server Error while connecting to InventoryDetails mysql db on local server :" + err;
+                HelperUtilsModule.logInternalServerError("MySQLServiceEngine.handleInventoryRecordRequestsMySql", failureMessage, http_response);
 
-            console.log("Successfully connected to InventoryDetails mysqlDb : ");
-
-            // Table( Collection ) Creation
-
-            console.log("Successfully created / retrieved collection (inventoryDetailsCollection)");
-            console.log("Created / retrieved Collection ( Table ) : Now taking care of Inventory CRUD operations");
-
-            // Redirect the web Requests based on Query => Client_Request
-
-            switch (webClientRequest) {
-
-                case "AddInventory":
-
-                    InventoryRecordsQueryAndUpdatesModule.addInventoryRecordToDatabase(mySqlInventoryDBClient,
-                        globalsForServiceModule.inventoryDetails_Table_Name,
-                        clientRequestWithParamsMap,
-                        globalsForServiceModule.inventoryRecordRequiredFields,
-                        http_response);
-
-                    console.log("DesignYourREQuotationWebService.createServer : Successfully placed Add Inventory Record call");
-
-                    break;
-
-                case "UpdateInventory":
-
-                    InventoryRecordsQueryAndUpdatesModule.updateInventoryRecordInDatabase(mySqlInventoryDBClient,
-                        globalsForServiceModule.inventoryDetails_Table_Name,
-                        clientRequestWithParamsMap,
-                        globalsForServiceModule.inventoryRecordRequiredFields,
-                        http_response);
-
-                    console.log("DesignYourREQuotationWebService.createServer : Successfully placed Update Inventory Record call");
-
-                    break;
-
-                case "RetrieveInventoryDetails":
-
-                    console.log("DesignYourREQuotationWebService.createServer : Inside Inventory Details Switch : " +
-                        "RetrieveInventoryDetails : InventoryName : " + clientRequestWithParamsMap.get("Name"));
-
-                    // DB query & Reponse Building
-
-                    InventoryRecordsQueryAndUpdatesModule.retrieveRecordFromInventoryDetailsDatabase(mySqlInventoryDBClient,
-                        globalsForServiceModule.budgetDetails_Table_Name,
-                        clientRequestWithParamsMap,
-                        InventoryRecordsQueryModule.handleQueryResults,
-                        http_response);
-
-                    console.log("DesignYourREQuotationWebService.createServer : Switch Statement : " +
-                        "Successfully placed Retrieve_Inventory_Records call");
-
-                    break;
-
-                default:
-
-                    console.error("DesignYourREQuotationWebService.createServer : Inappropriate WebClient Request received...exiting");
-
-                    var failureMessage = "DesignYourREQuotationWebService : Inappropriate WebClient Request received...exiting";
-                    HelperUtilsModule.logBadHttpRequestError("DesignYourREQuotationWebService", failureMessage, http_response);
-
-                    break;
-
+                return;
             }
+        });
+    }
 
-        }
+    globalsForServiceModule.mySqlDBConnected = true;
 
-    });
+    console.log("Successfully connected to InventoryDetails mysqlDb : ");
+
+    // Table( Collection ) Creation
+
+    console.log("Created / retrieved Collection ( Table ) : Now taking care of Inventory CRUD operations");
+
+    // Redirect the web Requests based on Query => Client_Request
+
+    switch (webClientRequest) {
+
+        case "AddInventory":
+
+            InventoryRecordsQueryAndUpdatesModule.addInventoryRecordToDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap,
+                globalsForServiceModule.inventoryRecordRequiredFields,
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Successfully placed Add Inventory Record call");
+
+            break;
+
+        case "UpdateInventory":
+
+            InventoryRecordsQueryAndUpdatesModule.updateInventoryRecordInDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                clientRequestWithParamsMap.get("Used_Quantity"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Successfully placed Update Inventory Record call");
+
+            break;
+
+        case "RetrieveInventoryDetails":
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Inside Inventory Details Switch : " +
+                "RetrieveInventoryDetails : InventoryName : " + clientRequestWithParamsMap.get("Name"));
+
+            // DB query & Reponse Building
+
+            InventoryRecordsQueryAndUpdatesModule.retrieveRecordsFromInventoryDetailsDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.createServer : Switch Statement : " +
+                "Successfully placed Retrieve_Inventory_Records call");
+
+            break;
+
+        default:
+
+            console.error("DesignYourREQuotationWebService.createServer : Inappropriate WebClient Request received...exiting");
+
+            var failureMessage = "DesignYourREQuotationWebService : Inappropriate WebClient Request received...exiting";
+            HelperUtilsModule.logBadHttpRequestError("DesignYourREQuotationWebService", failureMessage, http_response);
+
+            break;
+
+    }
 
 }
 

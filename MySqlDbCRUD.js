@@ -39,27 +39,29 @@ var HelperUtilsModule = require('./HelperUtils');
  *
  */
 
-exports.directAdditionOfRecordToDatabase = function (dbConnection, collectionName, addRecordsToDBQuery, clientRequest, http_response) {
+exports.directQueryAndUpdateRecordsToDatabase = function (dbConnection, collectionName, addRecordsToDBQuery, clientRequest, http_response) {
 
     // Record Addition
+
+    console.error("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Executing Query => " + addRecordsToDBQuery );
 
     dbConnection.query(addRecordsToDBQuery, function (err, result) {
 
         if (err) {
-            console.error("MySqlDbCRUD.directAdditionOfRecordToDatabase : Error while adding the Record to Database collection => " +
+            console.error("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Error while adding/updating the Record to Database collection => " +
                 collectionName + " ,Error = " + err);
 
             if (HelperUtilsModule.valueDefined(http_response)) {
 
-                var failureMessage = "MySqlDbCRUD.directAdditionOfRecordToDatabase : Internal Server Error while adding the Record to Database collection => " +
+                var failureMessage = "MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Internal Server Error while adding/updating the Record to Database collection => " +
                     collectionName + " , Error = " + err;
-                HelperUtilsModule.logInternalServerError("directAdditionOfRecordToDatabase", failureMessage, http_response);
+                HelperUtilsModule.logInternalServerError("directQueryAndUpdateRecordsToDatabase", failureMessage, http_response);
 
             }
             return;
         }
 
-        console.log("MySqlDbCRUD.directAdditionOfRecordToDatabase : Successfully added the record to the Collection : " + collectionName);
+        console.log("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Successfully added/updated the record to the Collection : " + collectionName);
 
         if (HelperUtilsModule.valueDefined(http_response)) {
 
@@ -73,6 +75,55 @@ exports.directAdditionOfRecordToDatabase = function (dbConnection, collectionNam
 
 }
 
+
+/**
+ * 
+ * @param {DbConnection} dbConnection  : Connection to database 
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {Record} document_Object : Document object to be added ( Record, Row in Table )
+ * @param {Record} document_ObjectTypes : Document object types of input document Object
+ * @param {String} clientRequest : Request from Web Client
+ * 
+ * @returns {XMLHttpRequestResponse} http_response : HTTP Response to be formulated based on DB operations
+ *
+ */
+
+exports.directRetrieveRecordsFromDatabase = function (dbConnection, collectionName, retrieveRecordsFromDBQuery,
+    clientRequest, http_response, handleQueryResults) {
+
+    // Record Addition
+
+    console.error("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Executing Query => " + addRecordsToDBQuery);
+
+    dbConnection.query(addRecordsToDBQuery, function (err, result) {
+
+        if (err) {
+            console.error("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Error while adding/updating the Record to Database collection => " +
+                collectionName + " ,Error = " + err);
+
+            if (HelperUtilsModule.valueDefined(http_response)) {
+
+                var failureMessage = "MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Internal Server Error while adding/updating the Record to Database collection => " +
+                    collectionName + " , Error = " + err;
+                HelperUtilsModule.logInternalServerError("directQueryAndUpdateRecordsToDatabase", failureMessage, http_response);
+
+            }
+            return;
+        }
+
+        console.log("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Successfully added/updated the record to the Collection : " + collectionName);
+
+        if (HelperUtilsModule.valueDefined(http_response)) {
+
+            var successMessage = "Successfully added the record to the Collection : " + collectionName;
+            HelperUtilsModule.buildSuccessResponse_Generic(successMessage, clientRequest, http_response);
+
+            console.log(result);
+        }
+
+    });
+
+}
 
 /**
  * 

@@ -13,6 +13,7 @@ var GlobalsForServiceModule = require('./GlobalsForService');
 var RecordHelperUtilsModule = require('./RecordHelperUtils');
 var cryptoModule = require('crypto');
 var QueryBuilderModule = require('./QueryBuilder');
+var InventoryRecordsQueryAndUpdateModule = require('./InventoryRecordsQueryAndUpdates.js');
 
 var MySqlDbCrudModule = require('./MySqlDbCRUD');
 
@@ -38,8 +39,8 @@ var MySqlDbCrudModule = require('./MySqlDbCRUD');
 exports.handleQueryResults = function (queryResult, http_response) {
 
     console.log("Callback Function (handleQueryResults) : Successfully retrieved the records through function " +
-        "(mongoDbCrudModule.retrieveRecordsFromDatabase) => ");
-    console.log(queryResult);
+        "(InventoryRecordsQueryAndUpdates.retrieveRecordsFromInventoryDetailsDatabase) => ");
+    //console.log(queryResult);
 
     var queryResponse_JSON_String = buildQueryResponse_JSON(queryResult);
 
@@ -63,20 +64,20 @@ exports.handleQueryResults = function (queryResult, http_response) {
 
 function buildQueryResponse_JSON(queryResult) {
 
+    console.log("InventoryRecordsQueryAndUpdates.buildQueryResponse_JSON: Building success response in Json String format");
+
     var queryResponse_InventoryRecord_JSON_String = "";
 
     for (var i = 0; i < queryResult.length; i++) {
 
         var currentRecord = queryResult[i];
 
-        if (HelperUtilsModule.valueDefined(currentRecord.Inventory_Id)) {
-
-            queryResponse_InventoryRecord_JSON_String += JSON.stringify(RecordHelperUtilsModule.buildJSONRecord(currentRecord,
-                GlobalsForServiceModule.userRegistrationData_RequiredFields));
-            queryResponse_InventoryRecord_JSON_String += "\n";
-        }
+        queryResponse_InventoryRecord_JSON_String += JSON.stringify(currentRecord);
+        queryResponse_InventoryRecord_JSON_String += "\n";
 
     }
+
+    console.log("buildQueryResponse_JSON : Query Response JSON String => " + queryResponse_InventoryRecord_JSON_String);
 
     return queryResponse_InventoryRecord_JSON_String;
 }
@@ -238,6 +239,7 @@ exports.addInventoryRecordToDatabase = function (dbConnection, collectionName, r
 }
 
 
+
 /**
  * 
  * @param {DbConnection} dbConnection  : Connection to database
@@ -266,7 +268,7 @@ function checkUniquenessAndAddInventoryRecord(dbConnection, collectionName, docu
     var addRecordsToDBQuery = MySqlDbCrudModule.getGenericMySqlQueryForRecordAddition(collectionName, document_Object, document_TypesObject,
         document_ColumnsObject, GlobalsForServiceModule.inventoryRecordRequiredFields);
 
-    MySqlDbCrudModule.directAdditionOfRecordToDatabase(dbConnection, collectionName, addRecordsToDBQuery, clientRequest, http_response);
+    MySqlDbCrudModule.directQueryAndUpdateRecordsToDatabase(dbConnection, collectionName, addRecordsToDBQuery, clientRequest, http_response);
 
 /*
     // Register Inventory Record
@@ -322,6 +324,83 @@ function checkUniquenessAndAddInventoryRecord(dbConnection, collectionName, docu
 
 }
 
+
+
+/**
+ *
+ * @param {DbConnection} dbConnection  : Connection to database
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {String} recordName  : Name of the record to be updated
+ * @param {Int} recordCurrentUsedQuantity  : Current Used Quantity to be updated in the record data
+ *
+ * @param {XMLHttpRequestResponse} http_response : http response to be filled while responding to web client request
+ *
+ */
+
+exports.updateInventoryRecordInDatabase = function (dbConnection, collectionName, recordName, recordCurrentUsedQuantity,
+    http_response) {
+
+
+    // Update Inventory Record with current used quantity
+
+    console.log("updateInventoryRecordInDatabase => collectionName :" + collectionName);
+
+    var updateRecordsToDBQuery = getMySqlQueryForRecordUpdation(collectionName, recordCurrentUsedQuantity, recordName);
+
+    MySqlDbCrudModule.directQueryAndUpdateRecordsToDatabase(dbConnection, collectionName, updateRecordsToDBQuery, "UpdateInventory", http_response);
+
+}
+
+/**
+ *
+ * @param {DbConnection} dbConnection  : Connection to database
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {String} recordName  : Name of the record to be updated
+ * @param {Int} recordCurrentUsedQuantity  : Current Used Quantity to be updated in the record data
+ *
+ * @param {XMLHttpRequestResponse} http_response : http response to be filled while responding to web client request
+ *
+ */
+
+exports.retrieveRecordsFromInventoryDetailsDatabase = function (dbConnection, collectionName, recordName, http_response)
+{
+
+    // Retrieve Inventory Records with current record name
+
+    console.log("retrieveRecordFromInventoryDetailsDatabase => collectionName :" + collectionName);
+
+    var retrieveRecordsFromDBQuery = getMySqlQueryForRecordRetrieval(collectionName, recordName);
+
+    dbConnection.query(retrieveRecordsFromDBQuery, function (err, result) {
+
+        if (err) {
+            console.error("retrieveRecordFromInventoryDetailsDatabase : Error while retrieving the Records from Database collection => " +
+                collectionName + " ,Error = " + err);
+
+            if (HelperUtilsModule.valueDefined(http_response)) {
+
+                var failureMessage = "retrieveRecordFromInventoryDetailsDatabase : Internal Server Error while retrieving the Records from Database collection => " +
+                    collectionName + " , Error = " + err;
+                HelperUtilsModule.logInternalServerError("retrieveRecordFromInventoryDetailsDatabase", failureMessage, http_response);
+
+            }
+            return;
+        }
+
+        console.log("retrieveRecordFromInventoryDetailsDatabase : Successfully retrieved the records from the Collection : " + collectionName);
+
+        if (HelperUtilsModule.valueDefined(http_response)) {
+
+            var successMessage = "Successfully retrieved the records from the Collection : " + collectionName;
+            //HelperUtilsModule.buildSuccessResponse_Generic(successMessage, clientRequest, http_response);
+
+            console.log(result);
+
+            InventoryRecordsQueryAndUpdateModule.handleQueryResults(result, http_response);
+        }
+    });
+}
+
 /**
  * 
  * @param {String} collectionName  : Name of Table ( Collection )
@@ -347,6 +426,52 @@ function getMySqlQueryForRecordAddition(collectionName, inputParamsObject, input
         addRecordsMySqlQuery);
 
     return addRecordsMySqlQuery;
+
+}
+
+
+/**
+ * 
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {Record} currentUsedQuantity : Current Used Quantity that needs to be updated
+ * @param {Record} inventoryName : Name of the inventory Record to be updated
+ * 
+ * @returns {String} updateRecordsMySqlQuery : Query for updation of records to the given collection
+ *
+ */
+
+function getMySqlQueryForRecordUpdation(collectionName, currentUsedQuantity, inventoryName) {
+
+    var updateRecordsMySqlQuery = "UPDATE " + collectionName +
+        " SET UsedQuantity = " + currentUsedQuantity + " WHERE name = '" + inventoryName + "'";
+
+    console.log("getMySqlQueryForRecordUpdation : Retrieved the mysql query to update records to the database => " +
+        updateRecordsMySqlQuery);
+
+    return updateRecordsMySqlQuery;
+
+}
+
+
+
+/**
+ * 
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {Record} inventoryName : Name of the inventory Record to be retrieved
+ * 
+ * @returns {String} recordRetrievalMySqlQuery : Query for Retrieval of Records from given collection
+ *
+ */
+
+function getMySqlQueryForRecordRetrieval(collectionName, inventoryName) {
+
+    var recordRetrievalMySqlQuery = "SELECT * From " + collectionName + " WHERE name = '" + inventoryName + "'";
+        
+
+    console.log("getMySqlQueryForRecordRetrieval : Retrieved the mysql query to retrieve records from the database => " +
+        recordRetrievalMySqlQuery);
+
+    return recordRetrievalMySqlQuery;
 
 }
 

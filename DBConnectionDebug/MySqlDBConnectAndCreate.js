@@ -9,7 +9,7 @@ var mySqlClient = mySqlConnection.createConnection(
         host: "localhost",
         user: "root",
         password: "Abcde_12345",
-        database: "designyourrequotation"
+        database: "designyourrequotationdb"
     }
 );
 

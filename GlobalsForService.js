@@ -33,7 +33,6 @@ var designYourREQuotation_Database_Name = "designYourREQuotationDb";
 
 // All Table/Collection Names
 
-var budgetDetails_Table_Name = "budgetDetailsCollection";
 var userDetails_TableName = "designYourREQuotationUserDetailsCollection";
 var inventoryDetails_Table_Name = "inventoryDetailsCollection";
 
@@ -43,6 +42,7 @@ var mongoDesignYourREQuotationDbUrl = 'mongodb://127.0.0.1:27017/' + designYourR
 var designYourREQuotationDbConnection;
 
 var backEndDatabase = "MySql"; // Values can be MySql or MongoDB
+var mySqlDBConnected = false;
 
 // Budget Details : Required Fields
 
@@ -94,13 +94,13 @@ exports.mongoClient = mongoClient;
 
 exports.designYourREQuotation_Database_Name = designYourREQuotation_Database_Name;
 
-exports.budgetDetails_Table_Name = budgetDetails_Table_Name;
 exports.userDetails_TableName = userDetails_TableName;
 exports.inventoryDetails_Table_Name = inventoryDetails_Table_Name;
 
 exports.mongoDesignYourREQuotationDbUrl = mongoDesignYourREQuotationDbUrl;
 
-exports.backEndDatabase = backEndDatabase;
+exports.backEndDatabase = backEndDatabase; 
+exports.mySqlDBConnected = mySqlDBConnected;
 
 
 exports.userRegistrationData_RequiredFields = userRegistrationData_RequiredFields;
