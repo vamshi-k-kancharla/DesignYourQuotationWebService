@@ -14,6 +14,8 @@ var RecordHelperUtilsModule = require('./RecordHelperUtils');
 var MongoDbCrudModule = require('./MongoDbCRUD')
 var cryptoModule = require('crypto');
 var QueryBuilderModule = require('./QueryBuilder');
+var MySqlDbCrudModule = require('./MySqlDbCRUD');
+var InventoryRecordsQueryAndUpdateModule = require('./InventoryRecordsQueryAndUpdates');
 
 
 /**************************************************************************
@@ -28,162 +30,53 @@ var QueryBuilderModule = require('./QueryBuilder');
 
 
 /**
- * 
- * @param {Object} queryResult  : Result object of the Web Cient query
- * @param {XMLHttpRequest} http_request  : http request passed from web service handler
- * @param {XMLHttpRequestResponse} http_response : http response to be filled while responding to web client request
  *
- */
-
-exports.handleQueryResults = function (queryResult, http_response) {
-
-    console.log("Callback Function (handleQueryResults) : Successfully retrieved the records through function " +
-        "(mongoDbCrudModule.retrieveRecordsFromDatabase) => ");
-    console.log(queryResult);
-
-    var queryResponse_JSON_String = buildQueryResponse_JSON(queryResult);
-
-    // Build Success Response with Query Results
-
-    http_response.writeHead(200, { 'Content-Type': 'application/json' });
-    http_response.end(queryResponse_JSON_String);
-
-    console.log("UserRecordsQueryAndUpdates.handleQueryResults: Written Success response for input query : Response => " +
-        queryResponse_JSON_String);
-}
-
-
-/**
- * 
- * @param {Object} queryResult  : query Response received from Mongo DB
- * 
- * @returns {String} queryResponse_UserRecord_JSON_String  : JSON String of Retrieved User Record(s)
- *
- */
-
-function buildQueryResponse_JSON(queryResult) {
-
-    var queryResponse_UserRecord_JSON_String = "";
-
-    for (var i = 0; i < queryResult.length; i++) {
-
-        var currentRecord = queryResult[i];
-
-        if (HelperUtilsModule.valueDefined(currentRecord.User_Id)) {
-
-            queryResponse_UserRecord_JSON_String += JSON.stringify(RecordHelperUtilsModule.buildJSONRecord(currentRecord,
-                GlobalsForServiceModule.userRegistrationData_RequiredFields));
-            queryResponse_UserRecord_JSON_String += "\n";
-        }
-
-    }
-
-    return queryResponse_UserRecord_JSON_String;
-}
-
-
-/**
- * 
- * @param {DbConnection} dbConnection  : Connection to database 
+ * @param {DbConnection} dbConnection  : Connection to database
  * @param {String} collectionName  : Name of Table ( Collection )
- * 
- * @param {Map} clientRequestWithParamsMap : Map of <K,V> Pairs ( Record ) used to generate LC
- * @param {Function} handleQueryResults  : Call back function to handle the Query Results
+ * @param {String} userId  : UserId of the record to be retrieved
+ *
  * @param {XMLHttpRequestResponse} http_response : http response to be filled while responding to web client request
  *
  */
 
-exports.retrieveRecordFromUserDetailsDatabase = function (dbConnection, collectionName, clientRequestWithParamsMap,
-    handleQueryResults, http_response) {
+exports.retrieveRecordsFromUserDetailsDatabase = function (dbConnection, collectionName, userId, http_response) {
 
-    // User Record Retrieval based on "User_Id || Name || User_Type || Email || Location || Address || UserName || Password"
+    // Retrieve User Records with current User Id
 
-    var queryObject = new Object();
+    console.log("retrieveRecordFromInventoryDetailsDatabase => collectionName :" + collectionName);
 
-    var userRecordDetails = GlobalsForServiceModule.userRegistrationData_RequiredFields;
-    var parameterList = " ";
+    var retrieveRecordsFromDBQuery = getMySqlQueryForRecordRetrieval(collectionName, userId);
 
-    // Fill the record document object values
+    dbConnection.query(retrieveRecordsFromDBQuery, function (err, result) {
 
-    for (var currentDetailOfRecord of userRecordDetails) {
+        if (err) {
+            console.error("retrieveRecordsFromUserDetailsDatabase : Error while retrieving the Records from Database collection => " +
+                collectionName + " ,Error = " + err);
 
-        if (HelperUtilsModule.valueDefined(clientRequestWithParamsMap.get(currentDetailOfRecord))) {
+            if (HelperUtilsModule.valueDefined(http_response)) {
 
-            parameterList += currentDetailOfRecord;
-            parameterList += " : ";
-            parameterList += clientRequestWithParamsMap.get(currentDetailOfRecord);
-            parameterList += ", ";
+                var failureMessage = "retrieveRecordsFromUserDetailsDatabase : Internal Server Error while retrieving the Records from Database collection => " +
+                    collectionName + " , Error = " + err;
+                HelperUtilsModule.logInternalServerError("retrieveRecordsFromUserDetailsDatabase", failureMessage, http_response);
 
-            queryObject[currentDetailOfRecord] = clientRequestWithParamsMap.get(currentDetailOfRecord);
+            }
+            return;
         }
-    }
 
-    console.log("UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase => collectionName :"
-        + collectionName + ", queryObject.length :" + Object.keys(queryObject).length);
-    console.log("UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase : Called with Parameter List : " + parameterList);
+        console.log("retrieveRecordsFromUserDetailsDatabase : Successfully retrieved the records from the Collection : " + collectionName);
 
-    // Remove URL representation of spaces
+        if (HelperUtilsModule.valueDefined(http_response)) {
 
-    queryObject = HelperUtilsModule.removeUrlSpacesFromObjectValues(queryObject);
+            var successMessage = "Successfully retrieved the records from the Collection : " + collectionName;
+            //HelperUtilsModule.buildSuccessResponse_Generic(successMessage, clientRequest, http_response);
 
-    // Query for User Records
-
-    if (Object.keys(queryObject).length > 0) {
-
-        dbConnection.collection(collectionName).find(queryObject).toArray(function (err, result) {
-
-            if (err) {
-
-                var failureMessage = "UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase : Internal Server Error while querying for specific Records from UserDetails Database : " + err;
-                HelperUtilsModule.logInternalServerError("retrieveRecordFromUserDetailsDatabase", failureMessage, http_response);
-
-                return;
-            }
-
-            console.log("UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase : Successfully retrieved queried records => ");
             console.log(result);
 
-            if (result == null || result == undefined) {
-
-                var failureMessage = "UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase : Null Records returned for UserDetails Record query";
-                HelperUtilsModule.logBadHttpRequestError("retrieveRecordFromUserDetailsDatabase", failureMessage, http_response);
-
-                return;
-            }
-
-            return handleQueryResults(result, http_response);
-        });
-
-    } else {
-
-        dbConnection.collection(collectionName).find({}).toArray(function (err, result) {
-
-            if (err) {
-
-                var failureMessage = "UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase : Internal Server Error while querying for all the Records from UserDetails Database : " + err;
-                HelperUtilsModule.logInternalServerError("retrieveRecordFromUserDetailsDatabase", failureMessage, http_response);
-
-                return;
-            }
-
-            console.log("UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase : Successfully retrieved all the records => ");
-            console.log(result);
-
-            if (!HelperUtilsModule.valueDefined(result)) {
-
-                var failureMessage = "UserRecordsQueryAndUpdates.retrieveRecordFromUserDetailsDatabase : Null Records returned for UserDetails Record query For All Records";
-                HelperUtilsModule.logBadHttpRequestError("retrieveRecordFromUserDetailsDatabase", failureMessage, http_response);
-
-                return;
-            }
-
-            return handleQueryResults(result, http_response);
-
-        });
-
-    }
-
+            InventoryRecordsQueryAndUpdateModule.handleQueryResults(result, http_response);
+        }
+    });
 }
+
 
 
 /**
@@ -210,17 +103,27 @@ exports.addUserRecordToDatabase = function (dbConnection, collectionName, record
 
     console.log("addUserRecordToDatabase : All <K,V> pairs are present, Adding User Record of Num Of Pairs => " + requiredDetailsCollection.length);
 
-    // Prepare the User Object and add to the User Details Database
+    // Prepare the Inventory Object and add to the Inventory Details Database
 
     var userRecordObject = RecordHelperUtilsModule.prepareRecord_DocumentObject(recordObjectMap, requiredDetailsCollection);
 
-    // Remove spaces from user_object values before adding to MongoDB
+    var recordTypesObject = RecordHelperUtilsModule.createMatchingRecordObject(
+        GlobalsForServiceModule.userRegistrationDataRequiredFields,
+        GlobalsForServiceModule.userRegistrationRecordTypes);
+
+    var recordDbColumnsObject = RecordHelperUtilsModule.createMatchingRecordObject(
+        GlobalsForServiceModule.userRegistrationDataRequiredFields,
+        GlobalsForServiceModule.userRegistratonRecordDBColumns);
+
+    // Remove spaces from user_object values before adding to DB
 
     userRecordObject = HelperUtilsModule.removeUrlSpacesFromObjectValues(userRecordObject);
 
     checkUniquenessAndAddUserRecord(dbConnection,
         collectionName,
         userRecordObject,
+        recordTypesObject,
+        recordDbColumnsObject,
         "UserRegistration",
         http_response);
 
@@ -232,91 +135,37 @@ exports.addUserRecordToDatabase = function (dbConnection, collectionName, record
  * @param {DbConnection} dbConnection  : Connection to database
  * @param {String} collectionName  : Name of Table ( Collection )
  * @param {Object} document_Object : Document object to be added ( Record, Row in Table )
+ * @param {Object} document_TypesObject : Record Types object of added record to the table
+ * @param {Object} document_ColumnsObject : DB Column names of the current record schema
  * @param {String} clientRequest : Client Request from Web client
  * @param {XMLHttpRequestResponse} http_response : http response to be filled while responding to web client request
  *
  */
 
-function addRecordToUserDetailsDatabase(dbConnection, collectionName, document_Object, clientRequest, http_response) {
+function checkUniquenessAndAddUserRecord(dbConnection, collectionName, document_Object, document_TypesObject,
+    document_ColumnsObject, clientRequest, http_response) {
 
-    console.log("addRecordToUserDetailsDatabase => collectionName :" + collectionName + ", User_Id :" + document_Object.User_Id);
+    console.log("checkUniquenessOfUserRecord => collectionName :" + collectionName);
 
-    // Check Uniqueness of "User_Id, Name, Email, UserName, Password"
+    /*
+    var queryObject = QueryBuilderModule.buildQuery_MatchAnyField(GlobalsForServiceModule.userRegistrationData_UniqueFields,
+        document_Object);
+    */
 
-    // Update if Present ; Add Otherwise
+    console.log("checkUniquenessAndAddUserRecord => collectionName :" + collectionName);
 
-    var query = null;
-    if (HelperUtilsModule.valueDefined(document_Object.User_Id)) {
-
-        query = { User_Id: document_Object.User_Id };
-    }
+    console.log("Adding New User record data => " + " User Id : " + document_Object.UserId);
 
     // Encrypt Password before Registering/Updating User registration record
 
     document_Object.Password = cryptoModule.createHash('md5').update(document_Object.Password).digest('hex');
 
-    // Register User Record
+    var addRecordsToDBQuery = MySqlDbCrudModule.getGenericMySqlQueryForRecordAddition(collectionName, document_Object, document_TypesObject,
+        document_ColumnsObject, GlobalsForServiceModule.userRegistrationDataRequiredFields);
 
-    if (query) {
+    MySqlDbCrudModule.directQueryAndUpdateRecordsToDatabase(dbConnection, collectionName, addRecordsToDBQuery, clientRequest, http_response);
 
-        dbConnection.collection(collectionName).findOne(query, function (err, result) {
-
-            if (err) {
-
-                console.error("UserRecordsQueryAndUpdates.addRecordToUserDetailsDatabase : Internal Server Error while querying for record to be inserted");
-
-                var failureMessage = "UserRecordsQueryAndUpdates.addRecordToUserDetailsDatabase : Internal Server Error while querying for record to be inserted";
-                HelperUtilsModule.logInternalServerError("addRecordToUserDetailsDatabase", failureMessage, http_response);
-
-                return;
-            }
-
-            var recordPresent = (result) ? "true" : "false";
-            if (recordPresent == "false") {
-
-                // Record Addition
-
-                console.log("Record Not Found, Adding New Record => " + " User_Id : " + document_Object.User_Id);
-                MongoDbCrudModule.directAdditionOfRecordToDatabase(dbConnection, collectionName, document_Object, clientRequest, http_response);
-            }
-            else {
-
-                // Record Updation
-
-                console.log("Record Found, Updating the existing Record => " + " User_Id : " + document_Object.User_Id);
-                MongoDbCrudModule.directUpdationOfRecordToDatabase(dbConnection, collectionName, document_Object, query, clientRequest, http_response);
-            }
-
-        });
-
-    } else {
-
-        // Record Addition
-
-        console.log("No User_Id in input Object, Adding New Record without primary keys");
-        MongoDbCrudModule.directAdditionOfRecordToDatabase(dbConnection, collectionName, document_Object, clientRequest, http_response);
-    }
-
-}
-
-
-/**
- * 
- * @param {DbConnection} dbConnection  : Connection to database
- * @param {String} collectionName  : Name of Table ( Collection )
- * @param {Object} document_Object : Document object to be added ( Record, Row in Table )
- * @param {String} clientRequest : Client Request from Web client
- * @param {XMLHttpRequestResponse} http_response : http response to be filled while responding to web client request
- *
- */
-
-function checkUniquenessAndAddUserRecord(dbConnection, collectionName, document_Object, clientRequest, http_response) {
-
-    console.log("checkUniquenessOfUserRecord => collectionName :" + collectionName);
-
-    var queryObject = QueryBuilderModule.buildQuery_MatchAnyField(GlobalsForServiceModule.userRegistrationData_UniqueFields,
-        document_Object);
-
+    /*
     // Register User Record
 
     if (queryObject) {
@@ -364,8 +213,9 @@ function checkUniquenessAndAddUserRecord(dbConnection, collectionName, document_
             }
 
         });
-
     } 
+    */
+
 
 }
 
@@ -483,6 +333,28 @@ function updateRecordInUserDetailsDatabase(dbConnection, collectionName, documen
         });
 
     }
+
+}
+
+
+/**
+ * 
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {Record} inventoryName : Name of the inventory Record to be retrieved
+ * 
+ * @returns {String} recordRetrievalMySqlQuery : Query for Retrieval of Records from given collection
+ *
+ */
+
+function getMySqlQueryForRecordRetrieval(collectionName, userId) {
+
+    var recordRetrievalMySqlQuery = "SELECT * From " + collectionName + " WHERE UserId = '" + userId + "'";
+
+
+    console.log("getMySqlQueryForRecordRetrieval : Retrieved the mysql query to retrieve records from the database => " +
+        recordRetrievalMySqlQuery);
+
+    return recordRetrievalMySqlQuery;
 
 }
 

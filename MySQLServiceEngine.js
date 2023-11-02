@@ -62,138 +62,105 @@ var mySqlInventoryDBClient = mySqlConnection.createConnection(
 
 exports.handleUserRecordRequestsMySql = function (webClientRequest, clientRequestWithParamsMap, http_response) {
 
-    var DesignYourREQuotation_Database_Name_1;
+    if (!globalsForServiceModule.mySqlDBConnected) {
 
-    globalsForServiceModule.mysqlClient.connect(globalsForServiceModule.mysqlDesignYourREQuotationDbUrl, function (err, db) {
+        mySqlInventoryDBClient.connect(function (err) {
 
-        console.log("Inside the connection to DesignYourREQuotation mysql DB");
+            console.log("Inside the connection to InventoryDetails MySql DB");
 
-        if (err != null) {
+            if (err != null) {
 
-            console.error("DesignYourREQuotationWebService.createServer : Server Error while connecting to DesignYourREQuotation mysql db on local server :"
-                + globalsForServiceModule.mysqlDesignYourREQuotationDbUrl);
+                console.error("MySQLServiceEngine.handleInventoryRecordRequestsMySql : Server Error while connecting to InventoryDetails mysql db on local server : " + err);
 
-            var failureMessage = "DesignYourREQuotationWebService.createServer : Server Error while connecting to DesignYourREQuotation mysql db on local server :"
-                + globalsForServiceModule.mysqlDesignYourREQuotationDbUrl;
-            HelperUtilsModule.logInternalServerError("DesignYourREQuotationWebService.createServer", failureMessage, http_response);
+                var failureMessage = "MySQLServiceEngine.handleInventoryRecordRequestsMySql : Server Error while connecting to InventoryDetails mysql db on local server :" + err;
+                HelperUtilsModule.logInternalServerError("MySQLServiceEngine.handleInventoryRecordRequestsMySql", failureMessage, http_response);
 
-        } else {
+                return;
+            }
+        });
+    }
 
-            console.log("Successfully connected to DesignYourREQuotation Details mysqlDb : " + globalsForServiceModule.mysqlDesignYourREQuotationDbUrl);
+    globalsForServiceModule.mySqlDBConnected = true;
 
-            // Database Creation
+    console.log("Successfully connected to UserDetails table of mysqlDb : ");
 
-            console.log("Creating / Retrieving User Details Database : ");
-            DesignYourREQuotation_Database_Name_1 = db.db(globalsForServiceModule.DesignYourREQuotation_Database_Name);
+    // Table( Collection ) Creation
 
-            // Table( Collection ) Creation
+    console.log("Created / retrieved Collection ( Table ) : Now taking care of User Record CRUD operations");
 
-            DesignYourREQuotation_Database_Name_1.createCollection(globalsForServiceModule.userDetails_TableName, function (err, result) {
+    // Redirect the web Requests based on Query => Client_Request
 
-                if (err) {
+    switch (webClientRequest) {
 
-                    console.error("DesignYourREQuotationWebService.createServer : Error while creating / retrieving Collection ( Table ) in User Details mysqlDb : "
-                        + globalsForServiceModule.userDetails_TableName);
+        case "UserRegistration":
 
-                    var failureMessage = "DesignYourREQuotationWebService.createServer : Error while creating / retrieving Collection ( Table ) in User Details mysqlDb : "
-                        + globalsForServiceModule.userDetails_TableName;
-                    HelperUtilsModule.logInternalServerError("DesignYourREQuotationWebService.createServer", failureMessage, http_response);
+            console.log("Adding User Registration Record to Database => clientRequestWithParamsMap.get(UserName) : ",
+                clientRequestWithParamsMap.get("UserName"));
 
-                    return;
-                }
+            UserRecordsQueryAndUpdatesModule.addUserRecordToDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.userDetails_TableName,
+                clientRequestWithParamsMap,
+                globalsForServiceModule.userRegistrationDataRequiredFields,
+                http_response);
 
-                console.log("Successfully created / retrieved collection (userDetailsCollection)");
-                console.log("Created / retrieved Collection ( Table ) : Now taking care of User Registration and Authentication");
+            console.log("handleUserRecordRequestsMySql : Successfully placed User Registration call");
 
-                // Redirect the web Requests based on Query Key => Client_Request
+            break;
 
-                switch (webClientRequest) {
+        case "UserAuthentication":
 
-                    case "UserRegistration":
+            UserAuthenticationModule.validateUserCredentials(DesignYourREQuotation_Database_Name,
+                globalsForServiceModule.userDetails_TableName,
+                clientRequestWithParamsMap,
+                http_response);
 
-                        console.log("Adding User Registration Record to Database => clientRequestWithParamsMap.get(UserName) : ",
-                            clientRequestWithParamsMap.get("UserName"));
+            console.log("DesignYourREQuotationWebService.createServer : Successfully placed User Authentication call");
 
-                        UserRecordsQueryAndUpdatesModule.addUserRecordToDatabase(DesignYourREQuotation_Database_Name,
-                            globalsForServiceModule.userDetails_TableName,
-                            clientRequestWithParamsMap,
-                            globalsForServiceModule.userRegistrationData_RequiredFields,
-                            http_response);
+            break;
 
-                        console.log("DesignYourREQuotationWebService.createServer : Successfully placed User Registration call");
+        case "UpdateUserProfile":
 
-                        break;
+            console.log("Updating User Profile in User Details Database => clientRequestWithParamsMap.get(UserName) : ",
+                clientRequestWithParamsMap.get("UserName"));
 
-                    case "UserAuthentication":
+            UserRecordsQueryAndUpdatesModule.updateUserRecordInDatabase(DesignYourREQuotation_Database_Name,
+                globalsForServiceModule.userDetails_TableName,
+                clientRequestWithParamsMap,
+                globalsForServiceModule.userRegistrationData_RequiredFields,
+                http_response);
 
-                        UserAuthenticationModule.validateUserCredentials(DesignYourREQuotation_Database_Name,
-                            globalsForServiceModule.userDetails_TableName,
-                            clientRequestWithParamsMap,
-                            http_response);
+            console.log("DesignYourREQuotationWebService.createServer : Successfully placed UserProfile Update call");
 
-                        console.log("DesignYourREQuotationWebService.createServer : Successfully placed User Authentication call");
+            break;
 
-                        break;
+        case "RetrieveUserDetails":
 
-                    case "UpdateUserProfile":
+            console.log("DesignYourREQuotationWebService.handleUserRecordRequestsMySql : Inside User Details Switch : " +
+                "RetrieveUserRecordDetails : User Id : " + clientRequestWithParamsMap.get("UserId"));
 
-                        console.log("Updating User Profile in User Details Database => clientRequestWithParamsMap.get(UserName) : ",
-                            clientRequestWithParamsMap.get("UserName"));
+            // DB query & Reponse Building
 
-                        UserRecordsQueryAndUpdatesModule.updateUserRecordInDatabase(DesignYourREQuotation_Database_Name,
-                            globalsForServiceModule.userDetails_TableName,
-                            clientRequestWithParamsMap,
-                            globalsForServiceModule.userRegistrationData_RequiredFields,
-                            http_response);
+            UserRecordsQueryAndUpdatesModule.retrieveRecordsFromUserDetailsDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.userDetails_TableName,
+                clientRequestWithParamsMap.get("UserId"),
+                http_response);
 
-                        console.log("DesignYourREQuotationWebService.createServer : Successfully placed UserProfile Update call");
+            console.log("DesignYourREQuotationWebService.handleUserRecordRequestsMySql : Switch Statement : " +
+                "Successfully placed Retrieve_Inventory_Records call");
 
-                        break;
+            break;
 
-                    case "RetrieveUserDetails":
 
-                        console.log("DesignYourREQuotationWebService.createServer : Inside User Registration & Auth Switch : " +
-                            "RetrieveUserDetails : UserName : " + clientRequestWithParamsMap.get("UserName"));
+        default:
 
-                        // Build Query
+            console.error("DesignYourREQuotationWebService.createServer : Inappropriate Web Client Request received...exiting");
 
-                        var queryMap = new Map();
-                        var userName = clientRequestWithParamsMap.get("UserName");
+            var failureMessage = "DesignYourREQuotationWebService : Inappropriate Web Client Request received...exiting";
+            HelperUtilsModule.logBadHttpRequestError("DesignYourREQuotationWebService", failureMessage, http_response);
 
-                        if (HelperUtilsModule.valueDefined(userName)) {
+            break;
 
-                            queryMap.set("UserName", userName);
-                        }
-
-                        // DB query & Reponse Building
-
-                        UserRecordsQueryAndUpdatesModule.retrieveRecordFromUserDetailsDatabase(DesignYourREQuotation_Database_Name,
-                            globalsForServiceModule.userDetails_TableName,
-                            queryMap,
-                            UserRecordsQueryAndUpdatesModule.handleQueryResults,
-                            http_response);
-
-                        console.log("DesignYourREQuotationWebService.createServer : Switch Statement : " +
-                            "Successfully placed RetrieveUserDetails call");
-
-                        break;
-
-                    default:
-
-                        console.error("DesignYourREQuotationWebService.createServer : Inappropriate Web Client Request received...exiting");
-
-                        var failureMessage = "DesignYourREQuotationWebService : Inappropriate Web Client Request received...exiting";
-                        HelperUtilsModule.logBadHttpRequestError("DesignYourREQuotationWebService", failureMessage, http_response);
-
-                        break;
-
-                }
-
-            });
-
-        }
-
-    });
+    }
 
 }
 

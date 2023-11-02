@@ -33,7 +33,7 @@ var designYourREQuotation_Database_Name = "designYourREQuotationDb";
 
 // All Table/Collection Names
 
-var userDetails_TableName = "designYourREQuotationUserDetailsCollection";
+var userDetails_TableName = "userDetailsCollection";
 var inventoryDetails_Table_Name = "inventoryDetailsCollection";
 
 // Mongo DB Database connections
@@ -44,18 +44,14 @@ var designYourREQuotationDbConnection;
 var backEndDatabase = "MySql"; // Values can be MySql or MongoDB
 var mySqlDBConnected = false;
 
-// Budget Details : Required Fields
-
-var budgetRecordRequiredFields = ["Budget_Id", "BudgetName", "Budget_Type", "Place", "StartDate", "EndDate", "Amount", "UserName"];
-var budgetRecordData_UniqueFields = ["Budget_Id"];
-var budgetRecordData_NameFileds = ["BudgetName", "UserName"];
-var budgetRecordData_SubGroupFileds = ["Budget_Type", "Place", "StartDate", "EndDate"];
-var budgetRecordData_AtleastOneValueShouldBeDifferent = ["BudgetName", "UserName","Budget_Type", "Place", "StartDate", "EndDate"];
-
 // User Account Creds management & Authorization
 
-var userRegistrationData_RequiredFields = ["UserType", "User_Id", "Name", "Email", "Address", "UserName", "Password"];
-var userRegistrationData_UniqueFields = ["User_Id", "Email", "UserName"];
+var userRegistrationDataRequiredFields = ["UserType", "UserId", "Name", "Email", "Address", "Password"];
+var userRegistratonRecordDBColumns = ["UserType", "UserId", "Name", "Email", "Address", "Password"];
+var userRegistrationRecordTypes = ["string", "string", "string", "string", "string", "string"];
+var userRegistrationDataUniqueFields = ["UserId", "Email"];
+var userRegistrationDataNameFields = ["Name"];
+var userRecordData_AtleastOneValueShouldBeDifferent = ["UserId", "Name"];
 
 // Inventory Details : Required Fields
 
@@ -103,15 +99,13 @@ exports.backEndDatabase = backEndDatabase;
 exports.mySqlDBConnected = mySqlDBConnected;
 
 
-exports.userRegistrationData_RequiredFields = userRegistrationData_RequiredFields;
-exports.userRegistrationData_UniqueFields = userRegistrationData_UniqueFields;
+exports.userRegistrationDataRequiredFields = userRegistrationDataRequiredFields;
+exports.userRegistratonRecordDBColumns = userRegistratonRecordDBColumns;
+exports.userRegistrationRecordTypes = userRegistrationRecordTypes;
+exports.userRegistrationDataUniqueFields = userRegistrationDataUniqueFields;
+exports.userRegistrationDataNameFields = userRegistrationDataNameFields;
+exports.userRecordData_AtleastOneValueShouldBeDifferent = userRecordData_AtleastOneValueShouldBeDifferent;
 
-
-exports.budgetRecordRequiredFields = budgetRecordRequiredFields;
-exports.budgetRecordData_UniqueFields = budgetRecordData_UniqueFields;
-exports.budgetRecordData_NameFileds = budgetRecordData_NameFileds;
-exports.budgetRecordData_SubGroupFileds = budgetRecordData_SubGroupFileds;
-exports.budgetRecordData_AtleastOneValueShouldBeDifferent = budgetRecordData_AtleastOneValueShouldBeDifferent;
 
 exports.inventoryRecordRequiredFields = inventoryRecordRequiredFields;
 exports.inventoryRecordDBColumns = inventoryRecordDBColumns;
