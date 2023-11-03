@@ -120,13 +120,13 @@ exports.handleUserRecordRequestsMySql = function (webClientRequest, clientReques
 
         case "UpdateUserProfile":
 
-            console.log("Updating User Profile in User Details Database => clientRequestWithParamsMap.get(UserName) : ",
-                clientRequestWithParamsMap.get("UserName"));
+            console.log("Updating User Profile in User Details Database => clientRequestWithParamsMap.get(UserId) : ",
+                clientRequestWithParamsMap.get("UserId"));
 
-            UserRecordsQueryAndUpdatesModule.updateUserRecordInDatabase(DesignYourREQuotation_Database_Name,
+            UserRecordsQueryAndUpdatesModule.updateUserRecordInDatabase(mySqlInventoryDBClient,
                 globalsForServiceModule.userDetails_TableName,
                 clientRequestWithParamsMap,
-                globalsForServiceModule.userRegistrationData_RequiredFields,
+                globalsForServiceModule.userRegistrationDataRequiredFields,
                 http_response);
 
             console.log("DesignYourREQuotationWebService.createServer : Successfully placed UserProfile Update call");

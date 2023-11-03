@@ -241,13 +241,23 @@ exports.updateUserRecordInDatabase = function (dbConnection, collectionName, rec
 
     var userRecordObject = RecordHelperUtilsModule.prepareRecord_DocumentObject(recordObjectMap, updateRecordKeys);
 
-    // Remove spaces from user_object values before updating record in MongoDB
+    var recordTypesObject = RecordHelperUtilsModule.createMatchingRecordObject(
+        GlobalsForServiceModule.userRegistrationDataRequiredFields,
+        GlobalsForServiceModule.userRegistrationRecordTypes);
+
+    var recordDbColumnsObject = RecordHelperUtilsModule.createMatchingRecordObject(
+        GlobalsForServiceModule.userRegistrationDataRequiredFields,
+        GlobalsForServiceModule.userRegistratonRecordDBColumns);
+
+    // Remove spaces from user_object values before adding to DB
 
     userRecordObject = HelperUtilsModule.removeUrlSpacesFromObjectValues(userRecordObject);
 
     updateRecordInUserDetailsDatabase(dbConnection,
         collectionName,
         userRecordObject,
+        recordTypesObject,
+        recordDbColumnsObject,
         "UpdateUserDetails",
         http_response);
 
@@ -260,79 +270,80 @@ exports.updateUserRecordInDatabase = function (dbConnection, collectionName, rec
  * @param {DbConnection} dbConnection  : Connection to database
  * @param {String} collectionName  : Name of Table ( Collection )
  * @param {Object} document_Object : Document object to be updated ( Record, Row in Table )
+ * @param {Object} recordTypesObject : Record types object of input record to be updated
+ * @param {Object} recordDbColumnsObject : Db columns object of input record to be updated
  * @param {String} clientRequest : Client Request from Web client
  * @param {XMLHttpRequestResponse} http_response : Http response to be filled while responding to web client request
  *
  */
 
-function updateRecordInUserDetailsDatabase(dbConnection, collectionName, document_Object, clientRequest, http_response) {
+function updateRecordInUserDetailsDatabase(dbConnection, collectionName, document_Object, recordTypesObject,
+    recordDbColumnsObject, clientRequest, http_response) {
 
     // Update if Present ; Return Error response otherwise
 
-    var query = null;
-
     console.log("UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase => collectionName :" + collectionName +
-        ", UserName :" + document_Object.UserName);
+        ", UserId :" + document_Object.UserId);
 
-    if (HelperUtilsModule.valueDefined(document_Object.UserName)) {
+    if (!HelperUtilsModule.valueDefined(document_Object.UserId)) {
 
-        query = { UserName: document_Object.UserName };
+        console.error("UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : " +
+            " UserId must be present in input request to update user details in database");
+
+        var failureMessage = "UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : " +
+            " UserId must be present in input request to update user details in database";
+        HelperUtilsModule.logBadHttpRequestError("updateRecordInUserDetailsDatabase", failureMessage, http_response);
+
     }
 
     // Encrypt Password before Registering/Updating User registration record
 
     document_Object.Password = cryptoModule.createHash('md5').update(document_Object.Password).digest('hex');
 
-    // Update Record
+    // Check for Record Presence
 
-    if (query == null) {
+    var retrieveRecordsFromDBQuery = getMySqlQueryForRecordRetrieval(collectionName, document_Object.UserId);
 
-        // UserName not present in input : Return "Record Not present" Error
+    dbConnection.query(retrieveRecordsFromDBQuery, function (err, result) {
 
-        console.error("UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : " +
-            " UserName must be present in input request to update user details in database");
+        if (err) {
+            console.error("updateRecordInUserDetailsDatabase : Error while retrieving the Records from Database collection => " +
+                collectionName + " ,Error = " + err);
 
-        var failureMessage = "UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : " +
-            " UserName must be present in input request to update user details in database";
-        HelperUtilsModule.logBadHttpRequestError("updateRecordInUserDetailsDatabase", failureMessage, http_response);
+            if (HelperUtilsModule.valueDefined(http_response)) {
 
-    } else {
-
-        // UserName present in input : Add / Update Record
-
-        dbConnection.collection(collectionName).findOne(query, function (err, result) {
-
-            if (err) {
-
-                console.error("UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : Internal Server Error while querying for record to be updated");
-
-                var failureMessage = "UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : Internal Server Error while querying for record to be updated";
+                var failureMessage = "updateRecordInUserDetailsDatabase : Internal Server Error while retrieving the Records from Database collection => " +
+                    collectionName + " , Error = " + err;
                 HelperUtilsModule.logInternalServerError("updateRecordInUserDetailsDatabase", failureMessage, http_response);
 
-                return;
             }
+            return;
+        }
 
-            var recordPresent = (result) ? "true" : "false";
-            if (recordPresent == "false") {
+        console.log("updateRecordInUserDetailsDatabase : Successfully retrieved the records from the Collection : " + collectionName);
 
-                // Record Not Present : Return Record Not present Error
+        if (result.length == 0) {
 
-                console.error("UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : Requested Record is not present in user details database");
+            console.error("updateRecordInUserDetailsDatabase : No record is found for the given UserId => " +
+                document_Object.UserId);
 
-                var failureMessage = "UserRecordsQueryAndUpdates.updateRecordInUserDetailsDatabase : Requested Record is not present in user details database";
+            if (HelperUtilsModule.valueDefined(http_response)) {
+
+                var failureMessage = "updateRecordInUserDetailsDatabase : No record is found for the given UserId => " +
+                    document_Object.UserId;
                 HelperUtilsModule.logBadHttpRequestError("updateRecordInUserDetailsDatabase", failureMessage, http_response);
+
             }
-            else {
+            return;
+        }
 
-                // Record Present : Record Updation
+    });
 
-                console.log("Record Found, Updating the existing Record => " + " UserName : " + document_Object.UserName);
-                MongoDbCrudModule.directUpdationOfRecordToDatabase(dbConnection, collectionName, document_Object, query, clientRequest, http_response);
-            }
+    var updateRecordsToDBQuery = MySqlDbCrudModule.getGenericMySqlQueryForRecordUpdates(collectionName, document_Object,
+        recordTypesObject, recordDbColumnsObject, GlobalsForServiceModule.userRegistrationDataRequiredFields);
 
-        });
-
-    }
+    MySqlDbCrudModule.directQueryAndUpdateRecordsToDatabase(dbConnection, collectionName, updateRecordsToDBQuery,
+        clientRequest, http_response);
 
 }
 

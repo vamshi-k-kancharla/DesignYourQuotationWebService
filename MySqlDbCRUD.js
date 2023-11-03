@@ -39,13 +39,13 @@ var HelperUtilsModule = require('./HelperUtils');
  *
  */
 
-exports.directQueryAndUpdateRecordsToDatabase = function (dbConnection, collectionName, addRecordsToDBQuery, clientRequest, http_response) {
+exports.directQueryAndUpdateRecordsToDatabase = function (dbConnection, collectionName, addUpdateRecordsToDBQuery, clientRequest, http_response) {
 
     // Record Addition
 
-    console.error("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Executing Query => " + addRecordsToDBQuery );
+    console.error("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Executing Query => " + addUpdateRecordsToDBQuery );
 
-    dbConnection.query(addRecordsToDBQuery, function (err, result) {
+    dbConnection.query(addUpdateRecordsToDBQuery, function (err, result) {
 
         if (err) {
             console.error("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Error while adding/updating the Record to Database collection => " +
@@ -61,11 +61,11 @@ exports.directQueryAndUpdateRecordsToDatabase = function (dbConnection, collecti
             return;
         }
 
-        console.log("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Successfully added/updated the record to the Collection : " + collectionName);
+        console.log("MySqlDbCRUD.directQueryAndUpdateRecordsToDatabase : Successfully added / updated the record to the Collection : " + collectionName);
 
         if (HelperUtilsModule.valueDefined(http_response)) {
 
-            var successMessage = "Successfully added the record to the Collection : " + collectionName;
+            var successMessage = "Successfully added / updated the record to the Collection : " + collectionName;
             HelperUtilsModule.buildSuccessResponse_Generic(successMessage, clientRequest, http_response);
 
             console.log(result);
@@ -171,6 +171,51 @@ requiredDataFields) {
         addRecordsMySqlQuery);
 
     return addRecordsMySqlQuery;
+
+}
+
+
+/**
+ * 
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {Record} inputParamsObject : Document object to be added ( Record, Row in Table )
+ * @param {Record} inputTypesObject : Data Types of Add Record to be added to Collection / Table
+ * @param {Record} inputDBColumnsObject : Column names of Record to be added to Collection / Table
+ * @param {Array} requiredDataFields : Required data fields of the current Record To Be added
+ * 
+ * @returns {String} AddRecordsMySqlQuery : Query for the add records to be added to input collection
+ *
+ */
+
+exports.getGenericMySqlQueryForRecordUpdates = function (collectionName, inputParamsObject, inputTypesObject, inputDBColumnsObject,
+    requiredDataFields) {
+
+    var updateRecordsMySqlQuery = "UPDATE " + collectionName + " SET ";
+
+    var firstColumn = true;
+
+    console.log("getGenericMySqlQueryForRecordUpdates : inputParmsObject.length => " +
+        inputParamsObject.length);
+
+    for (var currentFieldName of requiredDataFields) {
+
+        var currentValueType = inputTypesObject[currentFieldName];
+        var requiredStringNotation = (currentValueType == "date" || currentValueType == "string") ? "'" : " ";
+
+        console.log("getGenericMySqlQueryForRecordUpdates : currentFieldName = " + currentFieldName + ", Object Value = "
+            + inputParamsObject[currentFieldName] )
+
+        updateRecordsMySqlQuery += ((firstColumn == false) ? " , " : " ") + inputDBColumnsObject[currentFieldName] +
+        " = " + requiredStringNotation + inputParamsObject[currentFieldName] + requiredStringNotation;
+        firstColumn = false;
+    }
+
+    updateRecordsMySqlQuery += " WHERE " + " UserId = '" + inputParamsObject['UserId'] + "'";
+
+    console.log("getGenericMySqlQueryForRecordUpdates : Retrieved the mysql query to update records into the database => " +
+        updateRecordsMySqlQuery);
+
+    return updateRecordsMySqlQuery;
 
 }
 
