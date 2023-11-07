@@ -109,12 +109,13 @@ exports.handleUserRecordRequestsMySql = function (webClientRequest, clientReques
 
         case "UserAuthentication":
 
-            UserAuthenticationModule.validateUserCredentials(DesignYourREQuotation_Database_Name,
+            UserAuthenticationModule.validateUserCredentials(mySqlInventoryDBClient,
                 globalsForServiceModule.userDetails_TableName,
                 clientRequestWithParamsMap,
                 http_response);
-
-            console.log("DesignYourREQuotationWebService.createServer : Successfully placed User Authentication call");
+            
+            console.log("DesignYourREQuotationWebService.handleUserRecordRequestsMySql : " +
+                "Successfully placed User Authentication call");
 
             break;
 

@@ -29,6 +29,7 @@
 
 var cryptoModule = require('crypto');
 var HelperUtilsModule = require('./HelperUtils');
+var InventoryRecordsQueryAndUpdateModule = require('./InventoryRecordsQueryAndUpdates');
 
 /**
  * 
@@ -53,7 +54,7 @@ function prepareUserCredentialsObject (recordObjectMap) {
 
     var credentailsDataObject = new Object();
 
-    credentailsDataObject.UserName = recordObjectMap.get("UserName");
+    credentailsDataObject.UserId = recordObjectMap.get("UserId");
     credentailsDataObject.Password = recordObjectMap.get("Password");
     credentailsDataObject.PasswordEncrypted = recordObjectMap.get("PasswordEncrypted");
 
@@ -80,10 +81,10 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
     // Check if the request has UserName & Password Details
 
-    if (!HelperUtilsModule.valueDefined(document_Object.UserName) ||
+    if (!HelperUtilsModule.valueDefined(document_Object.UserId) ||
         !HelperUtilsModule.valueDefined(document_Object.Password) ) {
 
-        console.log("validateUserCredentials : Missing credential Details ( UserName || Password )");
+        console.log("validateUserCredentials : Missing credential Details ( UserId || Password )");
         var failureMessage = "Failure: Blank UserName || Password in input Request";
 
         buildErrorResponse_ForUserAuthentication(failureMessage, http_Response);
@@ -92,16 +93,18 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
     // DB Query
 
-    var query = { UserName: document_Object.UserName };
-    console.log("validateUserCredentials => collectionName :" + collectionName + ", UserName :" + document_Object.UserName);
+    console.log("retrieveRecordFromInventoryDetailsDatabase => collectionName :" + collectionName);
+
+    var retrieveUserRecordFromDBQuery = getMySqlQueryForUserRecordRetrieval(collectionName, document_Object.UserId);
+    console.log("retrieveUserRecordFromDBQuery => query :" + retrieveUserRecordFromDBQuery);
 
     // Validate Credentials and Build Response
 
-    dbConnection.collection(collectionName).findOne(query, function (err, result) {
+    dbConnection.query(retrieveUserRecordFromDBQuery, function (err, result) {
 
         if (err) {
 
-            console.error("UserAuthentication.validateUserCredentials : Internal Server Error while querying DB for User Credentials");
+            console.error("UserAuthentication.validateUserCredentials : Internal Server Error while querying DB for User Credentials" + err);
 
             var failureMessage = "UserAuthentication.validateUserCredentials : Internal Server Error while querying DB for User Credentials";
             HelperUtilsModule.logInternalServerError("validateUserCredentials", failureMessage, http_Response);
@@ -115,22 +118,24 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
         if (recordPresent == "false") {
 
-            console.log("validateUserCredentials : UserName was not registered : " + document_Object.UserName);
-            var failureMessage = "validateUserCredentials : UserName was not registered : " + document_Object.UserName;
+            console.log("validateUserCredentials : UserId was not registered : " + document_Object.UserId);
+            var failureMessage = "validateUserCredentials : UserId was not registered : " + document_Object.UserId;
 
             buildErrorResponse_ForUserAuthentication(failureMessage, http_Response);
 
         } else {
 
-            // User Exists. Validate the Password ( ToDo: Generate Hash and validate against the existing Password Hash)
+            // User Exists. Validate the Password
 
-            console.log("validateUserCredentials : User Exists. Validate the Credentials for User : " + document_Object.UserName);
+            console.log("validateUserCredentials : User Exists. Validate the Credentials for User : " + document_Object.UserId);
 
             var inputPasswordHash = null;
 
+            console.log("validateUserCredentials : PasswordEncrypted : " + document_Object.PasswordEncrypted);
+
             // Check if Password has already been Encrypted
 
-            if (document_Object.PasswordEncrypted == "True") {
+            if (document_Object.PasswordEncrypted == "True" || document_Object.PasswordEncrypted == "true") {
 
                 inputPasswordHash = document_Object.Password;
 
@@ -141,12 +146,19 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
             // Password comparison 
 
-            console.log("validateUserCredentials : generated Hash for input password : " + inputPasswordHash);
+            console.log("string result : " + JSON.stringify(result));
+            console.log("string result[0] : " + JSON.stringify(result[0]));
+            console.log("string result[0].UserId : " + result[0]["UserId"]);
 
-            if (result.Password != inputPasswordHash) {
+            for (var property in result[0]) {
 
-                console.log("validateUserCredentials : Passwords did not Match for UserName : " + document_Object.UserName);
-                var failureMessage = "validateUserCredentials : Passwords did not Match for UserName : " + document_Object.UserName;
+                console.log("Property : " + property + " , value = " + result[0][property]);
+            }
+
+            if (result[0].Password != inputPasswordHash) {
+
+                console.log("validateUserCredentials : Passwords did not Match for User : " + document_Object.UserId);
+                var failureMessage = "validateUserCredentials : Passwords did not Match for UserId : " + document_Object.UserId;
 
                 buildErrorResponse_ForUserAuthentication(failureMessage, http_Response);
 
@@ -185,4 +197,28 @@ function buildErrorResponse_ForUserAuthentication(failureMessage, http_Response)
     http_Response.writeHead(400, { 'Content-Type': 'application/json' });
     http_Response.end(userAuthenticationResponse);
 }
+
+
+
+/**
+ * 
+ * @param {String} collectionName  : Name of Table ( Collection )
+ * @param {Record} inputUserId : UserId of the record to be retrieved and validated against
+ * 
+ * @returns {String} recordRetrievalMySqlQuery : Query for Retrieval of User Record from given collection
+ *
+ */
+
+function getMySqlQueryForUserRecordRetrieval(collectionName, inputUserId) {
+
+    var recordRetrievalMySqlQuery = "SELECT * From " + collectionName + " WHERE UserId = '" + inputUserId + "'";
+
+
+    console.log("getMySqlQueryForUserRecordRetrieval : Retrieved the mysql query to retrieve records from the database => " +
+        recordRetrievalMySqlQuery);
+
+    return recordRetrievalMySqlQuery;
+
+}
+
 
