@@ -54,7 +54,7 @@ function prepareUserCredentialsObject (recordObjectMap) {
 
     var credentailsDataObject = new Object();
 
-    credentailsDataObject.UserId = recordObjectMap.get("UserId");
+    credentailsDataObject.Email = recordObjectMap.get("Email");
     credentailsDataObject.Password = recordObjectMap.get("Password");
     credentailsDataObject.PasswordEncrypted = recordObjectMap.get("PasswordEncrypted");
 
@@ -79,13 +79,13 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
     var credentailsDataObject = prepareUserCredentialsObject(recordObjectMap);
     var document_Object = credentailsDataObject;
 
-    // Check if the request has UserName & Password Details
+    // Check if the request has EmailAddress & Password Details
 
-    if (!HelperUtilsModule.valueDefined(document_Object.UserId) ||
+    if (!HelperUtilsModule.valueDefined(document_Object.Email) ||
         !HelperUtilsModule.valueDefined(document_Object.Password) ) {
 
-        console.log("validateUserCredentials : Missing credential Details ( UserId || Password )");
-        var failureMessage = "Failure: Blank UserName || Password in input Request";
+        console.log("validateUserCredentials : Missing credential Details ( Email || Password )");
+        var failureMessage = "Failure: Blank UserName/Email Address || Password in input Request";
 
         buildErrorResponse_ForUserAuthentication(failureMessage, http_Response);
         return;
@@ -93,9 +93,9 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
     // DB Query
 
-    console.log("retrieveRecordFromInventoryDetailsDatabase => collectionName :" + collectionName);
+    console.log("validateUserCredentials => collectionName :" + collectionName);
 
-    var retrieveUserRecordFromDBQuery = getMySqlQueryForUserRecordRetrieval(collectionName, document_Object.UserId);
+    var retrieveUserRecordFromDBQuery = getMySqlQueryForUserRecordRetrieval(collectionName, document_Object.Email);
     console.log("retrieveUserRecordFromDBQuery => query :" + retrieveUserRecordFromDBQuery);
 
     // Validate Credentials and Build Response
@@ -118,8 +118,8 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
         if (recordPresent == "false") {
 
-            console.log("validateUserCredentials : UserId was not registered : " + document_Object.UserId);
-            var failureMessage = "validateUserCredentials : UserId was not registered : " + document_Object.UserId;
+            console.log("validateUserCredentials : Email was not registered : " + document_Object.Email);
+            var failureMessage = "validateUserCredentials : Email was not registered : " + document_Object.Email;
 
             buildErrorResponse_ForUserAuthentication(failureMessage, http_Response);
 
@@ -127,7 +127,7 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
             // User Exists. Validate the Password
 
-            console.log("validateUserCredentials : User Exists. Validate the Credentials for User : " + document_Object.UserId);
+            console.log("validateUserCredentials : User Exists. Validate the Credentials for User : " + document_Object.Email);
 
             var inputPasswordHash = null;
 
@@ -148,7 +148,7 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
             console.log("string result : " + JSON.stringify(result));
             console.log("string result[0] : " + JSON.stringify(result[0]));
-            console.log("string result[0].UserId : " + result[0]["UserId"]);
+            console.log("string result[0].Email : " + result[0]["Email"]);
 
             for (var property in result[0]) {
 
@@ -157,8 +157,8 @@ exports.validateUserCredentials = function (dbConnection, collectionName, record
 
             if (result[0].Password != inputPasswordHash) {
 
-                console.log("validateUserCredentials : Passwords did not Match for User : " + document_Object.UserId);
-                var failureMessage = "validateUserCredentials : Passwords did not Match for UserId : " + document_Object.UserId;
+                console.log("validateUserCredentials : Passwords did not Match for User : " + document_Object.Email);
+                var failureMessage = "validateUserCredentials : Passwords did not Match for Email Address : " + document_Object.Email;
 
                 buildErrorResponse_ForUserAuthentication(failureMessage, http_Response);
 
@@ -203,16 +203,15 @@ function buildErrorResponse_ForUserAuthentication(failureMessage, http_Response)
 /**
  * 
  * @param {String} collectionName  : Name of Table ( Collection )
- * @param {Record} inputUserId : UserId of the record to be retrieved and validated against
+ * @param {Record} inputEmail : Email Address of the record to be retrieved and validated against
  * 
  * @returns {String} recordRetrievalMySqlQuery : Query for Retrieval of User Record from given collection
  *
  */
 
-function getMySqlQueryForUserRecordRetrieval(collectionName, inputUserId) {
+function getMySqlQueryForUserRecordRetrieval(collectionName, inputEmail) {
 
-    var recordRetrievalMySqlQuery = "SELECT * From " + collectionName + " WHERE UserId = '" + inputUserId + "'";
-
+    var recordRetrievalMySqlQuery = "SELECT * From " + collectionName + " WHERE Email = '" + inputEmail + "'";
 
     console.log("getMySqlQueryForUserRecordRetrieval : Retrieved the mysql query to retrieve records from the database => " +
         recordRetrievalMySqlQuery);
