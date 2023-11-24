@@ -35,6 +35,10 @@ var designYourREQuotation_Database_Name = "designYourREQuotationDb";
 
 var userDetails_TableName = "userDetailsCollection";
 var inventoryDetails_Table_Name = "inventoryDetailsCollection";
+var expenseAggregator_Table_Name = "ExpenseAggregatorCollection";
+var expenses_Table_Name = "ExpenseCollection";
+var statusTracking_Table_Name = "StatusTrackingCollection";
+var companies_Table_Name = "CompaniesCollection";
 
 // Mongo DB Database connections
 
@@ -61,6 +65,15 @@ var inventoryRecordTypes = ["string", "int", "date", "double", "double", "int"];
 var inventoryRecordData_UniqueFields = ["Item_Name"];
 var inventoryRecordData_NameFileds = ["Item_Name"];
 var inventoryRecordData_AtleastOneValueShouldBeDifferent = ["Item_Name", "Total_Quantity", "Price_Per_Unit", "Date_Of_Purchase", "Total_Amount"];
+
+// Company Details : Required Fields
+
+var companyRecordRequiredFields = ["CompanyName", "ProjectName", "CompanyId", "UserEmail"];
+var companyRecordDBColumns = ["CompanyName", "ProjectName", "CompanyId", "UserEmail"];
+var companyRecordTypes = ["string", "string", "string", "string"];
+var companyRecordData_UniqueFields = ["CompanyName", "CompanyId"];
+var companyRecordData_NameFileds = ["CompanyName", "ProjectName"];
+var companyRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", "ProjectName", "CompanyId", "UserEmail"];
 
 
 
@@ -92,6 +105,11 @@ exports.designYourREQuotation_Database_Name = designYourREQuotation_Database_Nam
 
 exports.userDetails_TableName = userDetails_TableName;
 exports.inventoryDetails_Table_Name = inventoryDetails_Table_Name;
+exports.expenseAggregator_Table_Name = expenseAggregator_Table_Name;
+exports.expenses_Table_Name = expenses_Table_Name;
+exports.statusTracking_Table_Name = statusTracking_Table_Name;
+exports.companies_Table_Name = companies_Table_Name;
+
 
 exports.mongoDesignYourREQuotationDbUrl = mongoDesignYourREQuotationDbUrl;
 
@@ -114,4 +132,11 @@ exports.inventoryRecordData_UniqueFields = inventoryRecordData_UniqueFields;
 exports.inventoryRecordData_NameFileds = inventoryRecordData_NameFileds;
 exports.inventoryRecordData_AtleastOneValueShouldBeDifferent = inventoryRecordData_AtleastOneValueShouldBeDifferent;
 
+
+exports.companyRecordRequiredFields = companyRecordRequiredFields;
+exports.companyRecordDBColumns = companyRecordDBColumns;
+exports.companyRecordTypes = companyRecordTypes;
+exports.companyRecordData_UniqueFields = companyRecordData_UniqueFields;
+exports.companyRecordData_NameFileds = companyRecordData_NameFileds;
+exports.companyRecordData_AtleastOneValueShouldBeDifferent = companyRecordData_AtleastOneValueShouldBeDifferent;
 

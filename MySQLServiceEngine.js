@@ -35,6 +35,8 @@ var HelperUtilsModule = require('./HelperUtils');
 var UserAuthenticationModule = require('./UserAuthentication');
 var UserRecordsQueryAndUpdatesModule = require('./UserRecordsQueryAndUpdates');
 
+var CompanyRecordsQueryAndUpdatesModule = require('./CompanyRecordsQueryAndUpdates');
+
 var InventoryRecordsQueryAndUpdatesModule = require('./InventoryRecordsQueryAndUpdates');
 
 var mySqlConnection = require('mysql');
@@ -261,6 +263,103 @@ exports.handleInventoryRecordRequestsMySql = function (webClientRequest, clientR
 
 }
 
+
+/**
+ * 
+ * @param {String} webClientRequest  : http client request 
+ * @param {Map} clientRequestWithParamsMap  : Map of <K,V> pairs corresponding to Inventory Item records
+ *
+ * @returns {HTTPResponse} http_response  : http_response to be formulated with respective status codes
+ * 
+*/
+
+exports.handleCompanyRecordRequestsMySql = function (webClientRequest, clientRequestWithParamsMap, http_response) {
+
+    if (!globalsForServiceModule.mySqlDBConnected) {
+
+        mySqlInventoryDBClient.connect(function (err) {
+
+            console.log("Inside the connection to Design Your RE Quotation MySql DB");
+
+            if (err != null) {
+
+                console.error("MySQLServiceEngine.handleCompanyRecordRequestsMySql : Server Error while connecting to Design Your RE Quotation MySql DB on local server : " + err);
+
+                var failureMessage = "MySQLServiceEngine.handleCompanyRecordRequestsMySql : Server Error while connecting to Design Your RE Quotation mysql db on local server :" + err;
+                HelperUtilsModule.logInternalServerError("MySQLServiceEngine.handleCompanyRecordRequestsMySql", failureMessage, http_response);
+
+                return;
+            }
+        });
+    }
+
+    globalsForServiceModule.mySqlDBConnected = true;
+
+    console.log("Successfully connected to handleCompanyRecordRequestsMySql mysqlDb : ");
+
+    // Table( Collection ) Creation
+
+    console.log("Created / retrieved Collection ( Table ) : Now taking care of Company Records CRUD operations");
+
+    // Redirect the web Requests based on Query => Client_Request
+
+    switch (webClientRequest) {
+
+        case "AddCompany":
+
+            CompanyRecordsQueryAndUpdatesModule.addCompanyRecordToDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.companies_Table_Name,
+                clientRequestWithParamsMap,
+                globalsForServiceModule.companyRecordRequiredFields,
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.handleCompanyRecordRequestsMySql : Successfully placed Add Company Record call");
+
+            break;
+
+        /*
+        case "UpdateCompany":
+
+            InventoryRecordsQueryAndUpdatesModule.updateInventoryRecordInDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                clientRequestWithParamsMap.get("Used_Quantity"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Successfully placed Update Inventory Record call");
+
+            break;
+
+        case "RetrieveCompanyDetails":
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Inside Inventory Details Switch : " +
+                "RetrieveInventoryDetails : InventoryName : " + clientRequestWithParamsMap.get("Name"));
+
+            // DB query & Reponse Building
+
+            InventoryRecordsQueryAndUpdatesModule.retrieveRecordsFromInventoryDetailsDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.createServer : Switch Statement : " +
+                "Successfully placed Retrieve_Inventory_Records call");
+
+            break;
+        */
+
+        default:
+
+            console.error("DesignYourREQuotationWebService.createServer : Inappropriate WebClient Request received...exiting");
+
+            var failureMessage = "DesignYourREQuotationWebService : Inappropriate WebClient Request received...exiting";
+            HelperUtilsModule.logBadHttpRequestError("DesignYourREQuotationWebService", failureMessage, http_response);
+
+            break;
+
+    }
+
+}
 
 
 

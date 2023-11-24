@@ -13,7 +13,7 @@ var GlobalsForServiceModule = require('./GlobalsForService');
 var RecordHelperUtilsModule = require('./RecordHelperUtils');
 var cryptoModule = require('crypto');
 var QueryBuilderModule = require('./QueryBuilder');
-var InventoryRecordsQueryAndUpdateModule = require('./InventoryRecordsQueryAndUpdates.js');
+var InventoryRecordsQueryAndUpdateModule = require('./InventoryRecordsQueryAndUpdates');
 
 var MySqlDbCrudModule = require('./MySqlDbCRUD');
 

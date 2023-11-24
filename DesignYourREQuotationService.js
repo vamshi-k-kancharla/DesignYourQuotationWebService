@@ -136,7 +136,7 @@ http.createServer(function (http_request, http_response) {
     } else if (webClientRequest == "AddInventory" || webClientRequest == "UpdateInventory" ||
         webClientRequest == "RetrieveInventoryDetails") {
 
-        // Connect to "DesignYourREQuotation" db for "Budget Related CRUD operations"
+        // Connect to "DesignYourREQuotation" db for "Inventory Related CRUD operations"
 
         if (globalsForServiceModule.backEndDatabase == 'Mongodb') {
 
@@ -146,6 +146,29 @@ http.createServer(function (http_request, http_response) {
         else if (globalsForServiceModule.backEndDatabase == 'MySql') {
 
             MySqlServiceEngine.handleInventoryRecordRequestsMySql(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else {
+
+            logDBUnavailabilityError();
+        }
+
+    } else if (webClientRequest == "AddCompany" || webClientRequest == "UpdateCompany" ||
+        webClientRequest == "RetrieveCompanyDetails") {
+
+        // Connect to "DesignYourREQuotation" db for "Company Related CRUD operations"
+        
+        /*
+        if (globalsForServiceModule.backEndDatabase == 'Mongodb') {
+
+            handleInventoryRecordRequests(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else */
+
+        if (globalsForServiceModule.backEndDatabase == 'MySql') {
+
+            MySqlServiceEngine.handleCompanyRecordRequestsMySql(webClientRequest, clientRequestWithParamsMap, http_response);
         }
 
         else {
