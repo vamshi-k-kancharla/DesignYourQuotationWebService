@@ -75,6 +75,15 @@ var companyRecordData_UniqueFields = ["CompanyName", "CompanyId"];
 var companyRecordData_NameFileds = ["CompanyName", "ProjectName"];
 var companyRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", "ProjectName", "CompanyId", "UserEmail"];
 
+// Status Tracking Details : Required Fields
+
+var statusTrackingRecordRequiredFields = ["CompanyName", "ProjectName", "Location", "StatusDate", "Status", "Photos", "Remarks"];
+var statusTrackingRecordDBColumns = ["CompanyName", "ProjectName", "Location", "StatusDate", "Status", "Photos", "Remarks"];
+var statusTrackingRecordTypes = ["string", "string", "string", "date", "string", "string", "string"];
+var statusTrackingRecordData_UniqueFields = ["CompanyName", "ProjectName"];
+var statusTrackingRecordData_NameFileds = ["CompanyName", "ProjectName"];
+var statusTrackingRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", "ProjectName"];
+
 
 
 // Global variables
@@ -139,4 +148,13 @@ exports.companyRecordTypes = companyRecordTypes;
 exports.companyRecordData_UniqueFields = companyRecordData_UniqueFields;
 exports.companyRecordData_NameFileds = companyRecordData_NameFileds;
 exports.companyRecordData_AtleastOneValueShouldBeDifferent = companyRecordData_AtleastOneValueShouldBeDifferent;
+
+
+exports.statusTrackingRecordRequiredFields = statusTrackingRecordRequiredFields;
+exports.statusTrackingRecordDBColumns = statusTrackingRecordDBColumns;
+exports.statusTrackingRecordTypes = statusTrackingRecordTypes;
+exports.statusTrackingRecordData_UniqueFields = statusTrackingRecordData_UniqueFields;
+exports.statusTrackingRecordData_NameFileds = statusTrackingRecordData_NameFileds;
+exports.statusTrackingRecordData_AtleastOneValueShouldBeDifferent = statusTrackingRecordData_AtleastOneValueShouldBeDifferent;
+
 

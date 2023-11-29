@@ -22,7 +22,7 @@ var MySqlDbCrudModule = require('./MySqlDbCRUD');
  **************************************************************************
  **************************************************************************
  * 
- * Company Records  : Record Retrievals and Updates Module
+ * StatusTracking Records  : Record Retrievals and Updates Module
  * 
  **************************************************************************
  **************************************************************************
@@ -34,13 +34,13 @@ var MySqlDbCrudModule = require('./MySqlDbCRUD');
  * @param {DbConnection} dbConnection  : Connection to database
  * @param {String} collectionName  : Name of Table ( Collection )
  *
- * @param {Map} recordObjectMap : Map of <K,V> Pairs ( Record ), to be added to Company database
+ * @param {Map} recordObjectMap : Map of <K,V> Pairs ( Record ), to be added to StatusTracking database
  * @param {Collection} requiredDetailsCollection : required keys for record addition
  * @param {XMLHttpRequestResponse} http_response : http response to be filled while responding to web client request
  *
  */
 
-exports.addCompanyRecordToDatabase = function (dbConnection, collectionName, recordObjectMap, requiredDetailsCollection,
+exports.addStatusTrackingRecordToDatabase = function (dbConnection, collectionName, recordObjectMap, requiredDetailsCollection,
     http_response) {
 
 
@@ -48,34 +48,34 @@ exports.addCompanyRecordToDatabase = function (dbConnection, collectionName, rec
 
     if (!RecordHelperUtilsModule.checkForMissingFields(recordObjectMap, requiredDetailsCollection, http_response)) {
 
-        console.log("addCompanyRecordToDatabase : check for missing fields failed");
+        console.log("addStatusTrackingRecordToDatabase : check for missing fields failed");
         return;
     }
 
-    console.log("addCompanyRecordToDatabase : All <K,V> pairs are present, Adding Company Record of Num Of Pairs => " + requiredDetailsCollection.length);
+    console.log("addStatusTrackingRecordToDatabase : All <K,V> pairs are present, Adding StatusTracking Record of Num Of Pairs => " + requiredDetailsCollection.length);
 
-    // Prepare the Company Object and add to the Company Details Database
+    // Prepare the StatusTracking Object and add to the StatusTracking Details Database
 
-    var companyRecordObject = RecordHelperUtilsModule.prepareRecord_DocumentObject(recordObjectMap, requiredDetailsCollection);
+    var statusTrackingRecordObject = RecordHelperUtilsModule.prepareRecord_DocumentObject(recordObjectMap, requiredDetailsCollection);
 
     var recordTypesObject = RecordHelperUtilsModule.createMatchingRecordObject(
-        GlobalsForServiceModule.companyRecordRequiredFields,
-        GlobalsForServiceModule.companyRecordTypes);
+        GlobalsForServiceModule.statusTrackingRecordRequiredFields,
+        GlobalsForServiceModule.statusTrackingRecordTypes);
 
     var recordDbColumnsObject = RecordHelperUtilsModule.createMatchingRecordObject(
-        GlobalsForServiceModule.companyRecordRequiredFields,
-        GlobalsForServiceModule.companyRecordDBColumns);
+        GlobalsForServiceModule.statusTrackingRecordRequiredFields,
+        GlobalsForServiceModule.statusTrackingRecordDBColumns);
 
     // Remove spaces from user_object values before adding to MongoDB
 
-    companyRecordObject = HelperUtilsModule.removeUrlSpacesFromObjectValues(companyRecordObject);
+    statusTrackingRecordObject = HelperUtilsModule.removeUrlSpacesFromObjectValues(statusTrackingRecordObject);
 
-    checkUniquenessAndAddCompanyRecord(dbConnection,
+    checkUniquenessAndAddStatusTrackingRecord(dbConnection,
         collectionName,
-        companyRecordObject,
+        statusTrackingRecordObject,
         recordTypesObject,
         recordDbColumnsObject,
-        "AddCompanyRecord",
+        "AddStatusRecord",
         http_response);
 
 }
@@ -95,25 +95,25 @@ exports.addCompanyRecordToDatabase = function (dbConnection, collectionName, rec
  *
  */
 
-function checkUniquenessAndAddCompanyRecord(dbConnection, collectionName, document_Object, document_TypesObject,
+function checkUniquenessAndAddStatusTrackingRecord(dbConnection, collectionName, document_Object, document_TypesObject,
     document_ColumnsObject, clientRequest, http_response) {
 
-    console.log("checkUniquenessOfCompanyRecord => collectionName :" + collectionName);
+    console.log("checkUniquenessOfStatusTrackingRecord => collectionName :" + collectionName);
 
     /*
-    var queryObject = QueryBuilderModule.buildQuery_MatchAnyField(GlobalsForServiceModule.CompanyRecordData_UniqueFields,
+    var queryObject = QueryBuilderModule.buildQuery_MatchAnyField(GlobalsForServiceModule.StatusTrackingRecordData_UniqueFields,
         document_Object);
     */
 
-    console.log("Adding New Company record data => " + " Company Name : " + document_Object.CompanyName);
+    console.log("Adding New StatusTracking record data => " + " Company Name & Project Name : " + document_Object.CompanyName + "&" + document_Object.ProjectName);
 
     var addRecordsToDBQuery = MySqlDbCrudModule.getGenericMySqlQueryForRecordAddition(collectionName, document_Object, document_TypesObject,
-        document_ColumnsObject, GlobalsForServiceModule.companyRecordRequiredFields);
+        document_ColumnsObject, GlobalsForServiceModule.statusTrackingRecordRequiredFields);
 
     MySqlDbCrudModule.directQueryAndUpdateRecordsToDatabase(dbConnection, collectionName, addRecordsToDBQuery, clientRequest, http_response);
 
 /*
-    // Register Company Record
+    // Register StatusTracking Record
 
     if (queryObject) {
 
@@ -121,12 +121,12 @@ function checkUniquenessAndAddCompanyRecord(dbConnection, collectionName, docume
 
             if (err) {
 
-                console.error("CompanyRecordsQueryAndUpdates.checkUniquenessOfCompanyRecord : " +
+                console.error("StatusTrackingRecordsQueryAndUpdates.checkUniquenessOfStatusTrackingRecord : " +
                     "Internal Server Error while checking uniqueness of input Record");
 
-                var failureMessage = "CompanyRecordsQueryAndUpdates.checkUniquenessOfCompanyRecord : " +
+                var failureMessage = "StatusTrackingRecordsQueryAndUpdates.checkUniquenessOfStatusTrackingRecord : " +
                     "Internal Server Error while checking uniqueness of input Record";
-                HelperUtilsModule.logInternalServerError("checkUniquenessOfCompanyRecord", failureMessage, http_response);
+                HelperUtilsModule.logInternalServerError("checkUniquenessOfStatusTrackingRecord", failureMessage, http_response);
 
                 return;
             }
@@ -137,24 +137,24 @@ function checkUniquenessAndAddCompanyRecord(dbConnection, collectionName, docume
 
                 // Record Not Present. Add Record during last uniqueness check
 
-                // Encrypt Password before Registering/Updating Company registration record
+                // Encrypt Password before Registering/Updating StatusTracking registration record
 
                 document_Object.Password = cryptoModule.createHash('md5').update(document_Object.Password).digest('hex');
 
                 // Record Addition
 
-                console.log("Entered Company Data is unique, Adding New Record => " + " Company_Id : " + document_Object.Company_Id);
+                console.log("Entered StatusTracking Data is unique, Adding New Record => " + " StatusTracking_Id : " + document_Object.StatusTracking_Id);
                 MongoDbCrudModule.directAdditionOfRecordToDatabase(dbConnection, collectionName, document_Object, clientRequest, http_response);
 
             }
             else {
 
-                console.error("CompanyRecordsQueryAndUpdates.checkUniquenessOfCompanyRecord : " +
-                    " Company Record already exists with current unique field values : ");
+                console.error("StatusTrackingRecordsQueryAndUpdates.checkUniquenessOfStatusTrackingRecord : " +
+                    " StatusTracking Record already exists with current unique field values : ");
 
-                var failureMessage = "CompanyRecordsQueryAndUpdates.checkUniquenessOfCompanyRecord : " +
-                    " Company Record already exists with current unique field values : ";
-                HelperUtilsModule.logBadHttpRequestError("checkUniquenessOfCompanyRecord", failureMessage, http_response);
+                var failureMessage = "StatusTrackingRecordsQueryAndUpdates.checkUniquenessOfStatusTrackingRecord : " +
+                    " StatusTracking Record already exists with current unique field values : ";
+                HelperUtilsModule.logBadHttpRequestError("checkUniquenessOfStatusTrackingRecord", failureMessage, http_response);
 
                 return;
             }
@@ -179,19 +179,21 @@ function checkUniquenessAndAddCompanyRecord(dbConnection, collectionName, docume
  *
  */
 
-exports.updateCompanyRecordInDatabase = function (dbConnection, collectionName, recordName, recordCurrentUsedQuantity,
+/****** Code need to be updated for Update Operation to work ******/
+exports.updateStatusTrackingRecordInDatabase = function (dbConnection, collectionName, recordName, recordCurrentUsedQuantity,
     http_response) {
 
 
-    // Update Company Record with current used quantity
+    // Update StatusTracking Record with current used quantity
 
-    console.log("updateCompanyRecordInDatabase => collectionName :" + collectionName);
+    console.log("updateStatusTrackingRecordInDatabase => collectionName :" + collectionName);
 
     var updateRecordsToDBQuery = getMySqlQueryForRecordUpdation(collectionName, recordCurrentUsedQuantity, recordName);
 
-    MySqlDbCrudModule.directQueryAndUpdateRecordsToDatabase(dbConnection, collectionName, updateRecordsToDBQuery, "UpdateCompany", http_response);
+    MySqlDbCrudModule.directQueryAndUpdateRecordsToDatabase(dbConnection, collectionName, updateRecordsToDBQuery, "UpdateStatusTracking", http_response);
 
 }
+
 
 /**
  *
@@ -204,32 +206,34 @@ exports.updateCompanyRecordInDatabase = function (dbConnection, collectionName, 
  *
  */
 
-exports.retrieveRecordsFromCompanyDetailsDatabase = function (dbConnection, collectionName, recordName, http_response)
+/****** Code need to be updated for Query/Retrieval Operation to work ******/
+
+exports.retrieveRecordsFromStatusTrackingDetailsDatabase = function (dbConnection, collectionName, recordName, http_response)
 {
 
-    // Retrieve Company Records with current record name
+    // Retrieve StatusTracking Records with current record name
 
-    console.log("retrieveRecordFromCompanyDetailsDatabase => collectionName :" + collectionName);
+    console.log("retrieveRecordFromStatusTrackingDetailsDatabase => collectionName :" + collectionName);
 
     var retrieveRecordsFromDBQuery = getMySqlQueryForRecordRetrieval(collectionName, recordName);
 
     dbConnection.query(retrieveRecordsFromDBQuery, function (err, result) {
 
         if (err) {
-            console.error("retrieveRecordFromCompanyDetailsDatabase : Error while retrieving the Records from Database collection => " +
+            console.error("retrieveRecordFromStatusTrackingDetailsDatabase : Error while retrieving the Records from Database collection => " +
                 collectionName + " ,Error = " + err);
 
             if (HelperUtilsModule.valueDefined(http_response)) {
 
-                var failureMessage = "retrieveRecordFromCompanyDetailsDatabase : Internal Server Error while retrieving the Records from Database collection => " +
+                var failureMessage = "retrieveRecordFromStatusTrackingDetailsDatabase : Internal Server Error while retrieving the Records from Database collection => " +
                     collectionName + " , Error = " + err;
-                HelperUtilsModule.logInternalServerError("retrieveRecordFromCompanyDetailsDatabase", failureMessage, http_response);
+                HelperUtilsModule.logInternalServerError("retrieveRecordFromStatusTrackingDetailsDatabase", failureMessage, http_response);
 
             }
             return;
         }
 
-        console.log("retrieveRecordFromCompanyDetailsDatabase : Successfully retrieved the records from the Collection : " + collectionName);
+        console.log("retrieveRecordFromStatusTrackingDetailsDatabase : Successfully retrieved the records from the Collection : " + collectionName);
 
         if (HelperUtilsModule.valueDefined(http_response)) {
 

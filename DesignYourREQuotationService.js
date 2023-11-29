@@ -176,6 +176,29 @@ http.createServer(function (http_request, http_response) {
             logDBUnavailabilityError();
         }
 
+    } else if (webClientRequest == "AddStatus" || webClientRequest == "UpdateStatus" ||
+        webClientRequest == "RetrieveStatusDetails") {
+
+        // Connect to "DesignYourREQuotation" db for "Status Tracking Related CRUD operations"
+
+        /*
+        if (globalsForServiceModule.backEndDatabase == 'Mongodb') {
+
+            handleStatusTrackingRecordRequests(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else */
+
+        if (globalsForServiceModule.backEndDatabase == 'MySql') {
+
+            MySqlServiceEngine.handleStatusTrackingRecordRequestsMySql(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else {
+
+            logDBUnavailabilityError();
+        }
+
     } else {
 
         console.error("DesignYourREQuotationWebService.createServer : Inappropriate/Unsupported WebClient Request received...exiting");
