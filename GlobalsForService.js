@@ -84,6 +84,17 @@ var statusTrackingRecordData_UniqueFields = ["CompanyName", "ProjectName"];
 var statusTrackingRecordData_NameFileds = ["CompanyName", "ProjectName"];
 var statusTrackingRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", "ProjectName"];
 
+// Expense Details : Required Fields
+
+var expenseRecordRequiredFields = ["AggregatorName", "ExpenseName", "ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
+var expenseRecordDBColumns = ["AggregatorName", "ExpenseName", "ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
+var expenseRecordTypes = ["string", "string", "date", "string", "string", "double"];
+var expenseRecordData_UniqueFields = ["ExpenseName"];
+var expenseRecordData_NameFileds = ["AggregatorName", "ExpenseName"];
+var expenseRecordData_AtleastOneValueShouldBeDifferent = ["ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
+
+
+
 
 
 // Global variables
@@ -157,4 +168,11 @@ exports.statusTrackingRecordData_UniqueFields = statusTrackingRecordData_UniqueF
 exports.statusTrackingRecordData_NameFileds = statusTrackingRecordData_NameFileds;
 exports.statusTrackingRecordData_AtleastOneValueShouldBeDifferent = statusTrackingRecordData_AtleastOneValueShouldBeDifferent;
 
+
+exports.expenseRecordRequiredFields = expenseRecordRequiredFields;
+exports.expenseRecordDBColumns = expenseRecordDBColumns;
+exports.expenseRecordTypes = expenseRecordTypes;
+exports.expenseRecordData_UniqueFields = expenseRecordData_UniqueFields;
+exports.expenseRecordData_NameFileds = expenseRecordData_NameFileds;
+exports.expenseRecordData_AtleastOneValueShouldBeDifferent = expenseRecordData_AtleastOneValueShouldBeDifferent;
 

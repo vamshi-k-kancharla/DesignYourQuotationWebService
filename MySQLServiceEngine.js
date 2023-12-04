@@ -460,4 +460,100 @@ exports.handleStatusTrackingRecordRequestsMySql = function (webClientRequest, cl
 }
 
 
+/**
+ * 
+ * @param {String} webClientRequest  : http client request 
+ * @param {Map} clientRequestWithParamsMap  : Map of <K,V> pairs corresponding to Expense Tracking Item records
+ *
+ * @returns {HTTPResponse} http_response  : http_response to be formulated with respective status codes
+ * 
+*/
+
+exports.handleExpenseRecordRequestsMySql = function (webClientRequest, clientRequestWithParamsMap, http_response) {
+
+    if (!globalsForServiceModule.mySqlDBConnected) {
+
+        mySqlInventoryDBClient.connect(function (err) {
+
+            console.log("Inside the connection to Design Your RE Quotation MySql DB");
+
+            if (err != null) {
+
+                console.error("MySQLServiceEngine.handleExpenseRecordRequestsMySql : Server Error while connecting to Design Your RE Quotation MySql DB on local server : " + err);
+
+                var failureMessage = "MySQLServiceEngine.handleExpenseRecordRequestsMySql : Server Error while connecting to Design Your RE Quotation mysql db on local server :" + err;
+                HelperUtilsModule.logInternalServerError("MySQLServiceEngine.handleExpenseRecordRequestsMySql", failureMessage, http_response);
+
+                return;
+            }
+        });
+    }
+
+    globalsForServiceModule.mySqlDBConnected = true;
+
+    console.log("Successfully connected to handleExpenseRecordRequestsMySql mysqlDb : ");
+
+    // Table( Collection ) Creation
+
+    console.log("Created / retrieved Collection ( Table ) : Now taking care of Expense Records CRUD operations");
+
+    // Redirect the web Requests based on Query => Client_Request
+
+    switch (webClientRequest) {
+
+        case "AddExpense":
+
+            ExpenseRecordsQueryAndUpdatesModule.addExpenseRecordToDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.statusTracking_Table_Name,
+                clientRequestWithParamsMap,
+                globalsForServiceModule.statusTrackingRecordRequiredFields,
+                http_response);
+
+            console.log("MySQLServiceEngine.handleExpenseRecordRequestsMySql : Successfully placed Add Expense Record call");
+
+            break;
+
+        /*
+        case "UpdateExpense":
+
+            InventoryRecordsQueryAndUpdatesModule.updateInventoryRecordInDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                clientRequestWithParamsMap.get("Used_Quantity"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Successfully placed Update Inventory Record call");
+
+            break;
+
+        case "RetrieveExpenseDetails":
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Inside Inventory Details Switch : " +
+                "RetrieveInventoryDetails : InventoryName : " + clientRequestWithParamsMap.get("Name"));
+
+            // DB query & Reponse Building
+
+            InventoryRecordsQueryAndUpdatesModule.retrieveRecordsFromInventoryDetailsDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.createServer : Switch Statement : " +
+                "Successfully placed Retrieve_Inventory_Records call");
+
+            break;
+        */
+
+        default:
+
+            console.error("MySQLServiceEngine.handleExpenseRecordRequestsMySql : Inappropriate WebClient Request received...exiting");
+
+            var failureMessage = "handleExpenseRecordRequestsMySql : Inappropriate WebClient Request received...exiting";
+            HelperUtilsModule.logBadHttpRequestError("DesignYourREQuotationWebService", failureMessage, http_response);
+
+            break;
+
+    }
+
+}
 

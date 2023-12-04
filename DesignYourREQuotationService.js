@@ -199,6 +199,29 @@ http.createServer(function (http_request, http_response) {
             logDBUnavailabilityError();
         }
 
+    } else if (webClientRequest == "AddExpense" || webClientRequest == "UpdateExpense" ||
+        webClientRequest == "RetrieveExpenseDetails") {
+
+        // Connect to "DesignYourREQuotation" db for "Expense Related CRUD operations"
+
+        /*
+        if (globalsForServiceModule.backEndDatabase == 'Mongodb') {
+
+            handleStatusTrackingRecordRequests(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else */
+
+        if (globalsForServiceModule.backEndDatabase == 'MySql') {
+
+            MySqlServiceEngine.handleExpenseRecordRequestsMySql(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else {
+
+            logDBUnavailabilityError();
+        }
+
     } else {
 
         console.error("DesignYourREQuotationWebService.createServer : Inappropriate/Unsupported WebClient Request received...exiting");
