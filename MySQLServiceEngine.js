@@ -38,6 +38,8 @@ var UserRecordsQueryAndUpdatesModule = require('./UserRecordsQueryAndUpdates');
 var CompanyRecordsQueryAndUpdatesModule = require('./CompanyRecordsQueryAndUpdates');
 var InventoryRecordsQueryAndUpdatesModule = require('./InventoryRecordsQueryAndUpdates');
 var StatusTrackingRecordsQueryAndUpdatesModule = require('./StatusTrackingRecordsQueryAndUpdates');
+var ExpenseRecordsQueryAndUpdatesModule = require('./ExpenseRecordsQueryAndUpdates');
+var ExpenseAggregatorRecordsQueryAndUpdatesModule = require('./ExpenseAggregatorRecordsQueryAndUpdates');
 
 var mySqlConnection = require('mysql');
 
@@ -504,9 +506,9 @@ exports.handleExpenseRecordRequestsMySql = function (webClientRequest, clientReq
         case "AddExpense":
 
             ExpenseRecordsQueryAndUpdatesModule.addExpenseRecordToDatabase(mySqlInventoryDBClient,
-                globalsForServiceModule.statusTracking_Table_Name,
+                globalsForServiceModule.expenses_Table_Name,
                 clientRequestWithParamsMap,
-                globalsForServiceModule.statusTrackingRecordRequiredFields,
+                globalsForServiceModule.expenseRecordRequiredFields,
                 http_response);
 
             console.log("MySQLServiceEngine.handleExpenseRecordRequestsMySql : Successfully placed Add Expense Record call");
@@ -556,4 +558,103 @@ exports.handleExpenseRecordRequestsMySql = function (webClientRequest, clientReq
     }
 
 }
+
+
+/**
+ * 
+ * @param {String} webClientRequest  : http client request 
+ * @param {Map} clientRequestWithParamsMap  : Map of <K,V> pairs corresponding to ExpenseAggregator Item records
+ *
+ * @returns {HTTPResponse} http_response  : http_response to be formulated with respective status codes
+ * 
+*/
+
+exports.handleExpenseAggregatorRecordRequestsMySql = function (webClientRequest, clientRequestWithParamsMap, http_response) {
+
+    if (!globalsForServiceModule.mySqlDBConnected) {
+
+        mySqlInventoryDBClient.connect(function (err) {
+
+            console.log("Inside the connection to Design Your RE Quotation MySql DB");
+
+            if (err != null) {
+
+                console.error("MySQLServiceEngine.handleExpenseAggregatorRecordRequestsMySql : Server Error while connecting to Design Your RE Quotation MySql DB on local server : " + err);
+
+                var failureMessage = "MySQLServiceEngine.handleExpenseAggregatorRecordRequestsMySql : Server Error while connecting to Design Your RE Quotation mysql db on local server :" + err;
+                HelperUtilsModule.logInternalServerError("MySQLServiceEngine.handleExpenseAggregatorRecordRequestsMySql", failureMessage, http_response);
+
+                return;
+            }
+        });
+    }
+
+    globalsForServiceModule.mySqlDBConnected = true;
+
+    console.log("Successfully connected to handleExpenseAggregatorRecordRequestsMySql mysqlDb : ");
+
+    // Table( Collection ) Creation
+
+    console.log("Created / retrieved Collection ( Table ) : Now taking care of ExpenseAggregator Records CRUD operations");
+
+    // Redirect the web Requests based on Query => Client_Request
+
+    switch (webClientRequest) {
+
+        case "AddExpenseAggregator":
+
+            ExpenseAggregatorRecordsQueryAndUpdatesModule.addExpenseAggregatorRecordToDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.expenseAggregator_Table_Name,
+                clientRequestWithParamsMap,
+                globalsForServiceModule.expenseAggregatorRecordRequiredFields,
+                http_response);
+
+            console.log("MySQLServiceEngine.handleExpenseAggregatorRecordRequestsMySql : Successfully placed Add ExpenseAggregator Record call");
+
+            break;
+
+        /*
+        case "UpdateExpenseAggregator":
+
+            InventoryRecordsQueryAndUpdatesModule.updateInventoryRecordInDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                clientRequestWithParamsMap.get("Used_Quantity"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Successfully placed Update Inventory Record call");
+
+            break;
+
+        case "RetrieveExpenseAggregatorDetails":
+
+            console.log("DesignYourREQuotationWebService.handleInventoryRecordRequestsMySql : Inside Inventory Details Switch : " +
+                "RetrieveInventoryDetails : InventoryName : " + clientRequestWithParamsMap.get("Name"));
+
+            // DB query & Reponse Building
+
+            InventoryRecordsQueryAndUpdatesModule.retrieveRecordsFromInventoryDetailsDatabase(mySqlInventoryDBClient,
+                globalsForServiceModule.inventoryDetails_Table_Name,
+                clientRequestWithParamsMap.get("Item_Name"),
+                http_response);
+
+            console.log("DesignYourREQuotationWebService.createServer : Switch Statement : " +
+                "Successfully placed Retrieve_Inventory_Records call");
+
+            break;
+        */
+
+        default:
+
+            console.error("MySQLServiceEngine.handleExpenseAggregatorRecordRequestsMySql : Inappropriate WebClient Request received...exiting");
+
+            var failureMessage = "handleExpenseAggregatorRecordRequestsMySql : Inappropriate WebClient Request received...exiting";
+            HelperUtilsModule.logBadHttpRequestError("DesignYourREQuotationWebService", failureMessage, http_response);
+
+            break;
+
+    }
+
+}
+
 

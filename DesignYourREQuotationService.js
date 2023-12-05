@@ -222,6 +222,29 @@ http.createServer(function (http_request, http_response) {
             logDBUnavailabilityError();
         }
 
+    } else if (webClientRequest == "AddExpenseAggregator" || webClientRequest == "UpdateExpenseAggregator" ||
+        webClientRequest == "RetrieveExpenseAggregatorDetails") {
+
+        // Connect to "DesignYourREQuotation" db for "ExpenseAggregator Related CRUD operations"
+
+        /*
+        if (globalsForServiceModule.backEndDatabase == 'Mongodb') {
+
+            handleExpenseAggregatorRecordRequests(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else */
+
+        if (globalsForServiceModule.backEndDatabase == 'MySql') {
+
+            MySqlServiceEngine.handleExpenseAggregatorRecordRequestsMySql(webClientRequest, clientRequestWithParamsMap, http_response);
+        }
+
+        else {
+
+            logDBUnavailabilityError();
+        }
+
     } else {
 
         console.error("DesignYourREQuotationWebService.createServer : Inappropriate/Unsupported WebClient Request received...exiting");
