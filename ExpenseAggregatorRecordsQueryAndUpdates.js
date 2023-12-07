@@ -44,6 +44,10 @@ exports.addExpenseAggregatorRecordToDatabase = function (dbConnection, collectio
     http_response) {
 
 
+    console.log("addExpenseAggregatorRecordToDatabase : recordObjectMap.length = " + recordObjectMap.length);
+    console.log("addExpenseAggregatorRecordToDatabase : No Of Expenses = " + recordObjectMap.get("NoOfExpenses"));
+
+
     // Check if all the required fields are present before adding the record
 
     if (!RecordHelperUtilsModule.checkForMissingFields(recordObjectMap, requiredDetailsCollection, http_response)) {

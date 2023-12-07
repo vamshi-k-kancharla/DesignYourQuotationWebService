@@ -96,9 +96,9 @@ var expenseRecordData_AtleastOneValueShouldBeDifferent = ["ExpenseDate", "Descri
 // Expense Details : Required Fields
 
 
-var expenseAggregatorRecordRequiredFields = ["ProjectName", "CompanyName", "AggregatorName", "CreatedDate", "TotalAmount", "PaidAmount", "BalanceAmount"];
-var expenseAggregatorRecordDBColumns = ["ProjectName", "CompanyName", "AggregatorName", "CreatedDate", "TotalAmount", "PaidAmount", "BalanceAmount"];
-var expenseAggregatorRecordTypes = ["string", "string", "string", "date", "double", "double", "double"];
+var expenseAggregatorRecordRequiredFields = ["ProjectName", "CompanyName", "AggregatorName", "CreatedDate", "TotalAmount", "PaidAmount", "BalanceAmount", "NoOfExpenses"];
+var expenseAggregatorRecordDBColumns = ["ProjectName", "CompanyName", "AggregatorName", "CreatedDate", "TotalAmount", "PaidAmount", "BalanceAmount", "NoOfExpenses"];
+var expenseAggregatorRecordTypes = ["string", "string", "string", "date", "double", "double", "double", "int"];
 var expenseAggregatorRecordData_UniqueFields = ["AggregatorName"];
 var expenseAggregatorRecordData_NameFileds = ["AggregatorName", "ProjectName", "CompanyName"];
 var expenseAggregatorRecordData_AtleastOneValueShouldBeDifferent = ["AggregatorName", "CreatedDate", "TotalAmount", "PaidAmount", "BalanceAmount"];

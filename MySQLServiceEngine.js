@@ -609,7 +609,7 @@ exports.handleExpenseAggregatorRecordRequestsMySql = function (webClientRequest,
                 globalsForServiceModule.expenseAggregatorRecordRequiredFields,
                 http_response);
 
-            console.log("MySQLServiceEngine.handleExpenseAggregatorRecordRequestsMySql : Successfully placed Add ExpenseAggregator Record call");
+            console.log("MySQLServiceEngine.handleExpenseAggregatorRecordRequestsMySql : Successfully placed AddExpenseAggregator Record call");
 
             break;
 
