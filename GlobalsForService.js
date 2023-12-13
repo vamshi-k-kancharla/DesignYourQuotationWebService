@@ -86,12 +86,12 @@ var statusTrackingRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", 
 
 // Expense Details : Required Fields
 
-var expenseRecordRequiredFields = ["AggregatorName", "ExpenseName", "ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
-var expenseRecordDBColumns = ["AggregatorName", "ExpenseName", "ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
-var expenseRecordTypes = ["string", "string", "date", "string", "string", "double"];
+var expenseRecordRequiredFields = ["CompanyName", "ProjectName", "AggregatorName", "ExpenseName", "ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
+var expenseRecordDBColumns = ["CompanyName", "ProjectName", "AggregatorName", "ExpenseName", "ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
+var expenseRecordTypes = ["string", "string", "string", "string", "date", "string", "string", "double"];
 var expenseRecordData_UniqueFields = ["ExpenseName"];
-var expenseRecordData_NameFileds = ["AggregatorName", "ExpenseName"];
-var expenseRecordData_AtleastOneValueShouldBeDifferent = ["ExpenseDate", "Description", "ModeOfPayment", "PaymentAmount"];
+var expenseRecordData_NameFileds = ["CompanyName", "ProjectName", "AggregatorName", "ExpenseName"];
+var expenseRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", "ProjectName", "AggregatorName", "ExpenseName"];
 
 // Expense Details : Required Fields
 
