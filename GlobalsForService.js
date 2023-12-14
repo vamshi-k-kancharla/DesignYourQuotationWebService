@@ -50,12 +50,12 @@ var mySqlDBConnected = false;
 
 // User Account Creds management & Authorization
 
-var userRegistrationDataRequiredFields = ["UserType", "UserId", "Name", "Email", "Address", "Password"];
-var userRegistratonRecordDBColumns = ["UserType", "UserId", "Name", "Email", "Address", "Password"];
-var userRegistrationRecordTypes = ["string", "string", "string", "string", "string", "string"];
+var userRegistrationDataRequiredFields = ["CompanyName", "ProjectName", "UserType", "UserId", "UserName", "Email", "Address", "Password"];
+var userRegistratonRecordDBColumns = ["CompanyName", "ProjectName", "UserType", "UserId", "UserName", "Email", "Address", "Password"];
+var userRegistrationRecordTypes = ["string", "string", "string", "string", "string", "string", "string", "string"];
 var userRegistrationDataUniqueFields = ["UserId", "Email"];
-var userRegistrationDataNameFields = ["Name"];
-var userRecordData_AtleastOneValueShouldBeDifferent = ["UserId", "Name"];
+var userRegistrationDataNameFields = ["CompanyName", "ProjectName", "UserName"];
+var userRecordData_AtleastOneValueShouldBeDifferent = ["UserId", "UserName"];
 
 // Inventory Details : Required Fields
 
@@ -68,12 +68,12 @@ var inventoryRecordData_AtleastOneValueShouldBeDifferent = ["Item_Name", "Total_
 
 // Company Details : Required Fields
 
-var companyRecordRequiredFields = ["CompanyName", "ProjectName", "CompanyId", "UserEmail"];
-var companyRecordDBColumns = ["CompanyName", "ProjectName", "CompanyId", "UserEmail"];
+var companyRecordRequiredFields = ["CompanyName", "ProjectName", "CompanyId", "Email"];
+var companyRecordDBColumns = ["CompanyName", "ProjectName", "CompanyId", "Email"];
 var companyRecordTypes = ["string", "string", "string", "string"];
 var companyRecordData_UniqueFields = ["CompanyName", "CompanyId"];
 var companyRecordData_NameFileds = ["CompanyName", "ProjectName"];
-var companyRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", "ProjectName", "CompanyId", "UserEmail"];
+var companyRecordData_AtleastOneValueShouldBeDifferent = ["CompanyName", "ProjectName"];
 
 // Status Tracking Details : Required Fields
 
